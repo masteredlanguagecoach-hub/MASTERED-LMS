@@ -1,0 +1,6 @@
+Initial commit: Mastered Skill Academy LMS production application
+- React + TypeScript frontend with responsive component architecture
+- Google Apps Script serverless API backend (20 modular .gs files)
+- Google Sheets 34-table relational database integration
+- Student, Trainer, Admin, and Staff role-based portals
+- Real-time attendance, sequential modules, assessments, assignments, fees, batch chat, placements, and job applications

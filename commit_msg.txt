@@ -1,5 +1,0 @@
-Fix 404 deployment error on Vercel and cloud static hosts:
-- Added root vercel.json with buildCommand and outputDirectory pointing to frontend/dist
-- Added root package.json with automated prefix build script
-- Added SPA client-side routing rewrites (/.* -> /index.html) in both root and frontend/vercel.json
-- Added frontend/public/_redirects for Netlify and static hosting fallback

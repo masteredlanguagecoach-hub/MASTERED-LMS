@@ -62,6 +62,7 @@ export interface Course {
   level: string;
   thumbnailUrl?: string;
   status: string;
+  defaultFee?: number | string;
 }
 
 export interface Batch {
@@ -301,6 +302,7 @@ export interface PlacementProfile {
   mockScore?: string;
   placementEligible: string;
   readinessPercent: string;
+  status?: string;
 }
 
 export interface PlacementReadiness {
@@ -399,4 +401,176 @@ export interface DashboardData {
   } | null;
   placement: { eligible: boolean; readinessPercent: number } | null;
   notifications: Notification[];
+}
+
+export type AssessmentCategory = 'A' | 'B' | 'C' | 'D' | 'E';
+
+export type AssessmentType = 'Topic Test' | 'Presentation' | 'Topic Mock Interview' | 'Topic Attendance';
+
+export interface AssessmentHistoryItem {
+  saId?: string;
+  id?: string;
+  studentId: string;
+  admissionNumber?: string;
+  studentName?: string;
+  courseId?: string;
+  courseTitle?: string;
+  courseName?: string;
+  batchId?: string;
+  batchName?: string;
+  moduleId?: string;
+  moduleTitle?: string;
+  moduleName?: string;
+  topic?: string;
+  assessmentType: AssessmentType | string;
+  date: string;
+  marks: number | null;
+  totalMarks: number;
+  category: AssessmentCategory;
+  isAbsent: boolean;
+  trainerId?: string;
+  trainerName?: string;
+  trainer?: string;
+  remarks?: string;
+}
+
+export interface AssessmentTypeSummary {
+  count: number;
+  completedCount?: number;
+  totalMarks: number;
+  avgMarks: number;
+  averageScore?: number;
+  categories: Record<AssessmentCategory, number>;
+  categoryCounts?: Record<string, number>;
+}
+
+export interface AssessmentSummaryGroup {
+  topicTests: AssessmentTypeSummary;
+  presentations: AssessmentTypeSummary;
+  mockInterviews: AssessmentTypeSummary;
+}
+
+export type PlacementStatus =
+  | 'NOT_READY'
+  | 'NEAR_COMPLETION'
+  | 'ELIGIBLE'
+  | 'INTERVIEW_ASSIGNED'
+  | 'INTERVIEWED'
+  | 'SHORTLISTED'
+  | 'SELECTED'
+  | 'OFFER_RECEIVED'
+  | 'PLACED'
+  | 'NOT_SELECTED'
+  | 'ON_HOLD'
+  | 'WITHDRAWN';
+
+export interface PlacementCandidate {
+  studentId: string;
+  admissionNumber: string;
+  fullName: string;
+  name?: string;
+  email: string;
+  mobile: string;
+  courseId: string;
+  courseTitle: string;
+  courseName?: string;
+  batchId: string;
+  batchName: string;
+  progress: number;
+  isCompleted: boolean;
+  isNearCompletion: boolean;
+  attendancePercent: number;
+  attendance?: number;
+  assessmentPerformance: {
+    averageMark: number;
+    totalCompleted: number;
+    categoryCounts: Record<AssessmentCategory, number>;
+  };
+  placementStatus: PlacementStatus;
+  placementEligible: boolean;
+  interviewCount: number;
+  lastInterviewDate?: string;
+  lastInterviewResult?: string;
+  lastInterviewCompany?: string;
+  lastInterview?: any;
+}
+
+export interface InterviewRecord {
+  interviewId: string;
+  studentId: string;
+  admissionNumber: string;
+  company: string;
+  position: string;
+  round?: string;
+  interviewType: string;
+  interviewDate: string;
+  interviewTime?: string;
+  location?: string;
+  assignedBy: string;
+  assignedDate: string;
+  status: 'ASSIGNED' | 'SCHEDULED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW' | string;
+  result: 'PENDING' | 'SELECTED' | 'REJECTED' | 'WAITING' | 'OFFERED' | string;
+  feedback?: string;
+  remarks?: string;
+}
+
+export interface PlacementStatusHistoryItem {
+  historyId: string;
+  studentId: string;
+  admissionNumber: string;
+  previousStatus: string;
+  newStatus: string;
+  changedBy: string;
+  changedDate: string;
+  timestamp?: string;
+  remarks?: string;
+  notes?: string;
+}
+
+export interface FeeChangeHistoryItem {
+  fchId: string;
+  historyId?: string;
+  studentId: string;
+  feeId: string;
+  oldFee: string;
+  newFee: string;
+  previousTotalFee?: number | string;
+  newTotalFee?: number | string;
+  changedBy: string;
+  changedDate: string;
+  timestamp?: string;
+  reason?: string;
+  notes?: string;
+}
+
+export interface ImportPreviewRow {
+  rowIndex: number;
+  admissionNumber: string;
+  fullName: string;
+  mobile: string;
+  email: string;
+  courseId: string;
+  courseTitle: string;
+  batchId: string;
+  batchName: string;
+  joiningDate: string;
+  assignedFee: number;
+  registrationFee: number;
+  discount: number;
+  status: string;
+  isValid: boolean;
+  isDuplicate: boolean;
+  errors: string[];
+}
+
+export interface ImportPreviewResponse {
+  totalRows: number;
+  validRows: number;
+  validCount?: number;
+  invalidRows: number;
+  invalidCount?: number;
+  duplicateRows: number;
+  duplicateCount?: number;
+  preview: ImportPreviewRow[];
+  rows?: ImportPreviewRow[];
 }

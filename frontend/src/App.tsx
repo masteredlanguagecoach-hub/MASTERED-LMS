@@ -36,6 +36,7 @@ import AdminCourses from './pages/admin/AdminCourses';
 import AdminBatches from './pages/admin/AdminBatches';
 import AdminFees from './pages/admin/AdminFees';
 import AdminJobs from './pages/admin/AdminJobs';
+import AdminPlacements from './pages/admin/AdminPlacements';
 import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
 
@@ -192,6 +193,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
                   <AdminJobs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/placements"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN', 'STAFF']}>
+                  <AdminPlacements />
                 </ProtectedRoute>
               }
             />

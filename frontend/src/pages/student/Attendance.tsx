@@ -45,97 +45,21 @@ export default function Attendance() {
     attendanceApi.getAttendance()
   );
 
-  const fallbackData: AttendanceResponse = {
+  const defaultData: AttendanceResponse = {
     summary: {
-      total: 28,
-      present: 24,
-      absent: 2,
-      excused: 1,
-      late: 1,
-      attendancePercent: 86,
+      total: 0,
+      present: 0,
+      absent: 0,
+      excused: 0,
+      late: 0,
+      attendancePercent: 0,
       minRequired: 75
     },
-    moduleWise: [
-      {
-        moduleId: 'MOD000001',
-        moduleName: 'HTML & CSS Fundamentals',
-        total: 10,
-        present: 10,
-        absent: 0,
-        percent: 100
-      },
-      {
-        moduleId: 'MOD000002',
-        moduleName: 'JavaScript Essentials',
-        total: 12,
-        present: 10,
-        absent: 2,
-        percent: 83
-      },
-      {
-        moduleId: 'MOD000003',
-        moduleName: 'React Frontend Development',
-        total: 6,
-        present: 5,
-        absent: 0,
-        percent: 83
-      }
-    ],
-    history: [
-      {
-        attendanceId: 'ATT001',
-        classId: 'CLS012',
-        status: 'PRESENT',
-        markedAt: new Date().toISOString(),
-        class: {
-          title: 'React Hooks Deep Dive',
-          classDate: new Date().toISOString(),
-          startTime: '10:00 AM',
-          endTime: '1:00 PM'
-        }
-      },
-      {
-        attendanceId: 'ATT002',
-        classId: 'CLS011',
-        status: 'LATE',
-        markedAt: new Date(Date.now() - 86400000).toISOString(),
-        remarks: 'Joined 15 minutes late due to network glitch',
-        class: {
-          title: 'Component Lifecycle and State',
-          classDate: new Date(Date.now() - 86400000).toISOString(),
-          startTime: '10:00 AM',
-          endTime: '1:00 PM'
-        }
-      },
-      {
-        attendanceId: 'ATT003',
-        classId: 'CLS010',
-        status: 'PRESENT',
-        markedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-        class: {
-          title: 'Introduction to React & JSX',
-          classDate: new Date(Date.now() - 86400000 * 3).toISOString(),
-          startTime: '10:00 AM',
-          endTime: '1:00 PM'
-        }
-      },
-      {
-        attendanceId: 'ATT004',
-        classId: 'CLS009',
-        status: 'ABSENT',
-        markedAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-        remarks: 'Medical leave submitted',
-        class: {
-          title: 'JavaScript Async / Await and Fetch',
-          classDate: new Date(Date.now() - 86400000 * 5).toISOString(),
-          startTime: '10:00 AM',
-          endTime: '1:00 PM'
-        }
-      }
-    ]
+    moduleWise: [],
+    history: []
   };
 
-  const att = data || fallbackData;
+  const att = data || defaultData;
   const isEligible = att.summary.attendancePercent >= att.summary.minRequired;
 
   if (loading && !data) {
@@ -224,23 +148,29 @@ export default function Attendance() {
         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gray-900)', marginBottom: 16 }}>
           Module-Wise Attendance Breakdown
         </h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {att.moduleWise.map((mod) => (
-            <div key={mod.moduleId}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: 6 }}>
-                <span style={{ fontWeight: 600, color: 'var(--gray-800)' }}>{mod.moduleName}</span>
-                <span style={{ fontWeight: 700, color: mod.percent >= 75 ? '#16a34a' : '#dc2626' }}>
-                  {mod.percent}% ({mod.present}/{mod.total} classes)
-                </span>
+        {att.moduleWise.length === 0 ? (
+          <div style={{ color: 'var(--gray-500)', fontSize: '0.85rem' }}>
+            No module attendance records recorded yet.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {att.moduleWise.map((mod) => (
+              <div key={mod.moduleId}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600, color: 'var(--gray-800)' }}>{mod.moduleName}</span>
+                  <span style={{ fontWeight: 700, color: mod.percent >= 75 ? '#16a34a' : '#dc2626' }}>
+                    {mod.percent}% ({mod.present}/{mod.total} classes)
+                  </span>
+                </div>
+                <ProgressBar
+                  percent={mod.percent}
+                  variant={mod.percent >= 75 ? 'success' : 'danger'}
+                  height={8}
+                />
               </div>
-              <ProgressBar
-                percent={mod.percent}
-                variant={mod.percent >= 75 ? 'success' : 'danger'}
-                height={8}
-              />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Attendance History Table */}
@@ -261,7 +191,14 @@ export default function Attendance() {
               </tr>
             </thead>
             <tbody>
-              {att.history.map((record) => (
+              {att.history.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--gray-500)' }}>
+                    No class attendance records marked yet.
+                  </td>
+                </tr>
+              ) : (
+                att.history.map((record) => (
                 <tr key={record.attendanceId}>
                   <td>
                     <div style={{ fontWeight: 600 }}>
@@ -287,7 +224,8 @@ export default function Attendance() {
                     </span>
                   </td>
                 </tr>
-              ))}
+              ))
+            )}
             </tbody>
           </table>
         </div>

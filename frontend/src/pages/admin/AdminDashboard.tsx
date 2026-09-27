@@ -60,61 +60,36 @@ export default function AdminDashboard() {
     adminApi.getDashboard()
   );
 
-  const fallbackData: AdminDashboardData = {
+  const defaultData: AdminDashboardData = {
     stats: {
-      totalStudents: 120,
-      activeStudents: 114,
-      totalTrainers: 8,
-      totalBatches: 6,
-      activeBatches: 5,
-      totalCourses: 4,
-      overallAttendance: 84,
-      assessmentPassRate: 78,
-      placementEligible: 42,
-      totalApplications: 68,
-      successfulPlacements: 18
+      totalStudents: 0,
+      activeStudents: 0,
+      totalTrainers: 0,
+      totalBatches: 0,
+      activeBatches: 0,
+      totalCourses: 0,
+      overallAttendance: 0,
+      assessmentPassRate: 0,
+      placementEligible: 0,
+      totalApplications: 0,
+      successfulPlacements: 0
     },
     fees: {
-      totalFees: 5400000,
-      totalPaid: 3600000,
-      totalPending: 1800000,
-      collectionRate: 67
+      totalFees: 0,
+      totalPaid: 0,
+      totalPending: 0,
+      collectionRate: 0
     },
-    recentStudents: [
-      {
-        studentId: 'STD000001',
-        admissionNumber: 'STD000001',
-        fullName: 'Priya Sharma',
-        email: 'student@masteredskill.academy',
-        status: 'ACTIVE',
-        createdAt: '2026-01-01'
-      },
-      {
-        studentId: 'STD000002',
-        admissionNumber: 'STD000002',
-        fullName: 'Aman Verma',
-        email: 'aman.verma@example.com',
-        status: 'ACTIVE',
-        createdAt: '2026-01-02'
-      },
-      {
-        studentId: 'STD000003',
-        admissionNumber: 'STD000003',
-        fullName: 'Sneha Patel',
-        email: 'sneha.patel@example.com',
-        status: 'ACTIVE',
-        createdAt: '2026-01-03'
-      }
-    ],
+    recentStudents: [],
     applications: {
-      total: 68,
-      applied: 32,
-      shortlisted: 18,
-      selected: 18
+      total: 0,
+      applied: 0,
+      shortlisted: 0,
+      selected: 0
     }
   };
 
-  const ad = data || fallbackData;
+  const ad = data || defaultData;
 
   if (loading && !data) {
     return <CardSkeleton count={4} />;
@@ -316,17 +291,25 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {ad.recentStudents.map((std) => (
-                <tr key={std.studentId}>
-                  <td style={{ fontWeight: 600 }}>{std.admissionNumber}</td>
-                  <td style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{std.fullName}</td>
-                  <td>{std.email}</td>
-                  <td><StatusBadge status={std.status} /></td>
-                  <td style={{ fontSize: '0.85rem', color: 'var(--gray-600)' }}>
-                    {new Date(std.createdAt).toLocaleDateString()}
+              {ad.recentStudents.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '24px', color: 'var(--gray-500)' }}>
+                    No student admissions recorded yet.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                ad.recentStudents.map((std) => (
+                  <tr key={std.studentId}>
+                    <td style={{ fontWeight: 600 }}>{std.admissionNumber}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{std.fullName}</td>
+                    <td>{std.email}</td>
+                    <td><StatusBadge status={std.status} /></td>
+                    <td style={{ fontSize: '0.85rem', color: 'var(--gray-600)' }}>
+                      {std.createdAt ? new Date(std.createdAt).toLocaleDateString() : '—'}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

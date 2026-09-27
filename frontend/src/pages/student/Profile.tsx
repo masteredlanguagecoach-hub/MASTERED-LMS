@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../hooks/useApi';
 import { studentApi, authApi } from '../../api/client';
 import { Student, Course, Batch } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import {
   User,
@@ -31,67 +32,30 @@ export default function Profile() {
     studentApi.getProfile()
   );
 
-  const fallbackData: ProfileResponse = {
-    student: {
-      studentId: 'STD000001',
-      userId: 'USR000003',
-      admissionNumber: 'STD000001',
-      fullName: 'Priya Sharma',
-      email: 'student@masteredskill.academy',
-      mobile: '9000000003',
-      dateOfBirth: '2000-05-15',
-      gender: 'Female',
-      address: '123 Tech Enclave, Road No. 4',
-      city: 'Hyderabad',
-      state: 'Telangana',
-      pinCode: '500001',
-      guardianName: 'Ravi Sharma',
-      guardianMobile: '9000000099',
-      courseId: 'CRS000001',
-      batchId: 'BAT000001',
-      enrollmentDate: '2026-01-01',
-      status: 'ACTIVE'
-    },
-    course: {
-      courseId: 'CRS000001',
-      title: 'Full Stack Web Development',
-      shortCode: 'FSWD',
-      description: 'Comprehensive 24-week professional software engineering career program.',
-      durationWeeks: '24',
-      durationHours: '480',
-      level: 'Beginner to Advanced',
-      status: 'ACTIVE'
-    },
-    batch: {
-      batchId: 'BAT000001',
-      batchName: 'FSWD - Batch 2026 A',
-      courseId: 'CRS000001',
-      trainerId: 'TRN000001',
-      startDate: '2026-01-06',
-      endDate: '2026-06-30',
-      schedule: 'Monday, Wednesday, Friday',
-      timing: '10:00 AM - 1:00 PM',
-      venue: 'Online Interactive',
-      mode: 'Online',
-      maxStudents: '30',
-      status: 'ACTIVE'
-    }
-  };
-
-  const p = data || fallbackData;
-  const std = p.student;
-
   // Form states for editable fields
-  const [fullName, setFullName] = useState(std.fullName);
-  const [mobile, setMobile] = useState(std.mobile);
-  const [address, setAddress] = useState(std.address || '');
-  const [city, setCity] = useState(std.city || '');
-  const [state, setState] = useState(std.state || '');
-  const [pinCode, setPinCode] = useState(std.pinCode || '');
-  const [guardianName, setGuardianName] = useState(std.guardianName || '');
-  const [guardianMobile, setGuardianMobile] = useState(std.guardianMobile || '');
+  const [fullName, setFullName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [pinCode, setPinCode] = useState('');
+  const [guardianName, setGuardianName] = useState('');
+  const [guardianMobile, setGuardianMobile] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (data?.student) {
+      setFullName(data.student.fullName || '');
+      setMobile(data.student.mobile || '');
+      setAddress(data.student.address || '');
+      setCity(data.student.city || '');
+      setState(data.student.state || '');
+      setPinCode(data.student.pinCode || '');
+      setGuardianName(data.student.guardianName || '');
+      setGuardianMobile(data.student.guardianMobile || '');
+    }
+  }, [data]);
 
   // Password change states
   const [currentPassword, setCurrentPassword] = useState('');
@@ -101,9 +65,10 @@ export default function Profile() {
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!data?.student) return;
     setSaving(true);
     try {
-      await studentApi.updateProfile(std.studentId, {
+      await studentApi.updateProfile(data.student.studentId, {
         fullName,
         mobile,
         address,
@@ -146,6 +111,19 @@ export default function Profile() {
   if (loading && !data) {
     return <CardSkeleton count={3} />;
   }
+
+  if (!data || !data.student) {
+    return (
+      <EmptyState
+        icon={User}
+        title="Profile Not Found"
+        message="Unable to load your student profile records from the database."
+      />
+    );
+  }
+
+  const p = data;
+  const std = p.student;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 960, margin: '0 auto' }}>
@@ -196,10 +174,10 @@ export default function Profile() {
               Enrolled Course
             </div>
             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--gray-900)', marginTop: 4 }}>
-              {p.course.title}
+              {p.course?.title || 'No Course Assigned'}
             </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginTop: 2 }}>
-              Code: {p.course.shortCode} • {p.course.durationWeeks} Weeks ({p.course.durationHours} Hours)
+              Code: {p.course?.shortCode || 'N/A'} • {p.course?.durationWeeks || '0'} Weeks ({p.course?.durationHours || '0'} Hours)
             </div>
           </div>
 
@@ -208,10 +186,10 @@ export default function Profile() {
               Assigned Batch
             </div>
             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--gray-900)', marginTop: 4 }}>
-              {p.batch.batchName}
+              {p.batch?.batchName || 'Unassigned'}
             </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginTop: 2 }}>
-              Timing: {p.batch.timing} • Mode: {p.batch.mode}
+              Timing: {p.batch?.timing || 'N/A'} • Mode: {p.batch?.mode || 'N/A'}
             </div>
           </div>
 
@@ -220,10 +198,10 @@ export default function Profile() {
               Enrollment Date
             </div>
             <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--gray-900)', marginTop: 4 }}>
-              {new Date(std.enrollmentDate).toLocaleDateString()}
+              {std.enrollmentDate ? new Date(std.enrollmentDate).toLocaleDateString() : 'N/A'}
             </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginTop: 2 }}>
-              Batch Schedule: {p.batch.schedule}
+              Batch Schedule: {p.batch?.schedule || 'N/A'}
             </div>
           </div>
         </div>

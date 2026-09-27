@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { assignmentsApi } from '../../api/client';
 import { Assignment } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import {
   FileText,
@@ -27,68 +28,7 @@ export default function Assignments() {
   const [submitting, setSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const fallbackAssignments: Assignment[] = [
-    {
-      assignmentId: 'ASG000001',
-      batchId: 'BAT000001',
-      title: 'Responsive Dashboard Project with CSS Grid',
-      description: 'Design and build a responsive student portal dashboard with mobile-first breakpoints and sidebar.',
-      instructions: '1. Create HTML semantic structure.\n2. Apply CSS Flexbox & CSS Grid for desktop/tablet/mobile.\n3. Deploy to GitHub Pages or Vercel.\n4. Submit your live URL and GitHub repo link.',
-      resourceUrl: 'https://github.com/example/starter-template',
-      maxMarks: '100',
-      dueDate: '2026-04-15',
-      submissionType: 'URL_AND_FILE',
-      status: 'ACTIVE',
-      submissionStatus: 'APPROVED',
-      submission: {
-        submissionId: 'SUB001',
-        assignmentId: 'ASG000001',
-        studentId: 'STD000001',
-        submissionText: 'GitHub: https://github.com/priya/dashboard-project\nLive Demo: https://priya-dashboard.vercel.app',
-        submittedAt: '2026-03-20T10:00:00Z',
-        status: 'APPROVED',
-        marksAwarded: '95',
-        feedback: 'Excellent component breakdown and clean CSS tokens! Great job on responsive layouts.',
-        reviewedBy: 'TRN000001',
-        reviewedAt: '2026-03-21T14:30:00Z'
-      }
-    },
-    {
-      assignmentId: 'ASG000002',
-      batchId: 'BAT000001',
-      title: 'React Custom Hooks & Google Apps Script API Client',
-      description: 'Build an API client layer connecting React state to Apps Script endpoints with error handling.',
-      instructions: 'Implement useApi and useAsyncAction hooks with retry states, skeletons, and token passing.',
-      resourceUrl: 'https://developers.google.com/apps-script/guides/web',
-      maxMarks: '100',
-      dueDate: '2026-04-30',
-      submissionType: 'URL_AND_FILE',
-      status: 'ACTIVE',
-      submissionStatus: 'SUBMITTED',
-      submission: {
-        submissionId: 'SUB002',
-        assignmentId: 'ASG000002',
-        studentId: 'STD000001',
-        submissionText: 'https://github.com/priya/react-gas-client',
-        submittedAt: '2026-03-25T16:00:00Z',
-        status: 'SUBMITTED'
-      }
-    },
-    {
-      assignmentId: 'ASG000003',
-      batchId: 'BAT000001',
-      title: 'Full Stack LMS Real Database Integration',
-      description: 'Connect frontend to all Google Sheets endpoints and test attendance/fee flows.',
-      instructions: 'Ensure LockService is properly executed for concurrent writes and passwords hashed with PBKDF2 salt.',
-      maxMarks: '100',
-      dueDate: '2026-05-15',
-      submissionType: 'URL_AND_FILE',
-      status: 'ACTIVE',
-      submissionStatus: 'PENDING'
-    }
-  ];
-
-  const assignments = data && data.length > 0 ? data : fallbackAssignments;
+  const assignments = data || [];
 
   const handleOpenSubmit = (assignment: Assignment) => {
     setSelectedAssignment(assignment);
@@ -131,8 +71,17 @@ export default function Assignments() {
         </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {assignments.map((asg) => {
+      {assignments.length === 0 ? (
+        <div className="card" style={{ padding: 32 }}>
+          <EmptyState
+            icon={<FileText size={48} color="var(--gray-400)" />}
+            title="No assignments posted"
+            description="You have no pending or completed assignments for your current batch."
+          />
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {assignments.map((asg) => {
           const sub = asg.submission;
           const status = asg.submissionStatus || 'PENDING';
 
@@ -219,7 +168,8 @@ export default function Assignments() {
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
 
       {/* Submission Modal */}
       {modalOpen && selectedAssignment && (

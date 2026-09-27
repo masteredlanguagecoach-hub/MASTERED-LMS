@@ -96,7 +96,19 @@ export const assessmentsApi = {
   getAssessments: (batchId?: string) => apiCall('getAssessments', batchId ? { batchId } : {}),
   getAssessmentDetails: (assessmentId: string) => apiCall('getAssessmentDetails', { assessmentId }),
   submitAssessment: (assessmentId: string, answers: Record<string, string>, startedAt?: string) =>
-    apiCall('submitAssessment', { assessmentId, answers: JSON.stringify(answers), startedAt })
+    apiCall('submitAssessment', { assessmentId, answers: JSON.stringify(answers), startedAt }),
+  recordAssessment: (data: {
+    studentId: string;
+    moduleId: string;
+    topic?: string;
+    assessmentType: string;
+    marks?: number | null;
+    isAbsent?: boolean;
+    remarks?: string;
+    saId?: string;
+  }) => apiCall('recordAssessment', data as Record<string, unknown>),
+  getAssessmentHistory: (params?: { studentId?: string; batchId?: string; courseId?: string; moduleId?: string }) =>
+    apiCall('getAssessmentHistory', (params || {}) as Record<string, unknown>)
 };
 
 // ── Assignments ───────────────────────────────────────────────
@@ -110,7 +122,35 @@ export const assignmentsApi = {
 export const feesApi = {
   getFees: (studentId?: string) => apiCall('getFees', studentId ? { studentId } : {}),
   getInstallments: (studentId?: string) => apiCall('getInstallments', studentId ? { studentId } : {}),
-  getPayments: (studentId?: string) => apiCall('getPayments', studentId ? { studentId } : {})
+  getPayments: (studentId?: string) => apiCall('getPayments', studentId ? { studentId } : {}),
+  editStudentFee: (
+    studentIdOrData: any,
+    totalAmount?: any,
+    registrationFee?: any,
+    tuitionFee?: any,
+    discountAmount?: any,
+    otherCharges?: any,
+    reason?: any,
+    notes?: any
+  ) => {
+    let payload: Record<string, unknown>;
+    if (typeof studentIdOrData === 'object' && studentIdOrData !== null) {
+      payload = studentIdOrData;
+    } else {
+      payload = {
+        studentId: studentIdOrData,
+        totalAmount,
+        registrationFee,
+        tuitionFee,
+        discountAmount,
+        otherCharges,
+        reason,
+        notes
+      };
+    }
+    return apiCall('editStudentFee', payload);
+  },
+  getFeeHistory: (studentId?: string) => apiCall('getFeeHistory', studentId ? { studentId } : {})
 };
 
 // ── Chat & Announcements ──────────────────────────────────────
@@ -123,7 +163,7 @@ export const chatApi = {
     apiCall('getAnnouncements', batchId ? { batchId } : {})
 };
 
-// ── Notifications ─────────────────────────────────────────────
+// ── Notifications ─────────────────────────────────────
 export const notificationsApi = {
   getNotifications: () => apiCall('getNotifications'),
   markRead: (notificationId: string) => apiCall('markNotificationRead', { notificationId }),
@@ -133,7 +173,39 @@ export const notificationsApi = {
 // ── Placements ────────────────────────────────────────────────
 export const placementsApi = {
   getPlacements: (studentId?: string) => apiCall('getPlacements', studentId ? { studentId } : {}),
-  updateProfile: (data: Record<string, string>) => apiCall('updatePlacementProfile', data)
+  updateProfile: (data: Record<string, string>) => apiCall('updatePlacementProfile', data),
+  getCandidates: (params?: {
+    courseId?: string;
+    batchId?: string;
+    status?: string;
+    completionFilter?: string;
+    minProgress?: number;
+    minAttendance?: number;
+  }) => apiCall('getPlacementCandidates', (params || {}) as Record<string, unknown>),
+  getPlacementCandidates: (params?: any) => apiCall('getPlacementCandidates', (params || {}) as Record<string, unknown>),
+  getPlacementProfile: (studentId?: string) => apiCall('getPlacementProfile', studentId ? { studentId } : {}),
+  updatePlacementStatus: (studentId: string, newStatus: string, remarks?: string) =>
+    apiCall('updatePlacementStatus', { studentId, newStatus, remarks: remarks || '' }),
+  assignInterview: (studentIdOrData: any, data?: any) => {
+    const payload = typeof studentIdOrData === 'string'
+      ? { studentId: studentIdOrData, ...(data || {}) }
+      : (studentIdOrData || {});
+    return apiCall('assignInterview', payload as Record<string, unknown>);
+  },
+  updateInterview: (
+    interviewId: string,
+    data: {
+      status?: string;
+      result?: string;
+      feedback?: string;
+      remarks?: string;
+      interviewDate?: string;
+      interviewTime?: string;
+      location?: string;
+    }
+  ) => apiCall('updateInterview', { interviewId, ...data } as Record<string, unknown>),
+  getInterviewHistory: (studentId?: string) => apiCall('getInterviewHistory', studentId ? { studentId } : {}),
+  getPlacementStatusHistory: (studentId?: string) => apiCall('getPlacementStatusHistory', studentId ? { studentId } : {})
 };
 
 // ── Jobs & Internships ────────────────────────────────────────
@@ -165,8 +237,12 @@ export const adminApi = {
   getDashboard: () => apiCall('getAdminDashboard'),
   getStudents: (batchId?: string) => apiCall('getStudents', batchId ? { batchId } : {}),
   createStudent: (data: Record<string, string>) => apiCall('createStudent', data),
+  validateStudentImport: (rows: unknown[]) => apiCall('validateStudentImport', { rows }),
+  confirmStudentImport: (validRows: unknown[]) => apiCall('confirmStudentImport', { validRows }),
   getCourses: () => apiCall('getCourses'),
   createCourse: (data: Record<string, string>) => apiCall('createCourse', data),
+  updateCourse: (data: { courseId: string; defaultFee?: string; title?: string; shortCode?: string; description?: string }) =>
+    apiCall('updateCourse', data as Record<string, unknown>),
   getBatches: (courseId?: string) => apiCall('getBatches', courseId ? { courseId } : {}),
   createBatch: (data: Record<string, string>) => apiCall('createBatch', data),
   createJob: (data: Record<string, string>) => apiCall('createJob', data),
@@ -176,6 +252,7 @@ export const adminApi = {
   recordPayment: (data: Record<string, string>) => apiCall('recordPayment', data),
   getReports: (reportType: string) => apiCall('getReports', { reportType }),
   initializeDatabase: () => apiCall('initializeDatabase'),
+  upgradeDatabase: () => apiCall('upgradeDatabase'),
   seedDemoData: () => apiCall('seedDemoData')
 };
 

@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { adminApi, jobsApi } from '../../api/client';
 import { Job, Internship } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { Briefcase, Plus, Building, MapPin, DollarSign, X } from 'lucide-react';
 
 export default function AdminJobs() {
@@ -24,26 +25,7 @@ export default function AdminJobs() {
   const [applicationDeadline, setApplicationDeadline] = useState('2026-06-30');
   const [saving, setSaving] = useState(false);
 
-  const fallbackJobs: Job[] = [
-    {
-      jobId: 'JOB000001',
-      title: 'Junior React Frontend Developer',
-      company: 'Innovatech Digital Solutions',
-      location: 'Bangalore, India',
-      workMode: 'Hybrid',
-      salaryMin: '₹5,50,000',
-      salaryMax: '₹7,50,000 PA',
-      openings: '3',
-      description: 'Looking for a skilled frontend engineer proficient in React, TypeScript, and state management.',
-      requirements: 'Strong command of React, CSS3 Flexbox/Grid, REST API consumption.',
-      eligibilityCriteria: 'Minimum 75% attendance and passed Academy technical assessments.',
-      applicationDeadline: '2026-05-30',
-      status: 'ACTIVE',
-      createdAt: '2026-03-01'
-    }
-  ];
-
-  const jobList = jobs && jobs.length > 0 ? jobs : fallbackJobs;
+  const jobList = jobs || [];
 
   const handleCreateJob = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,41 +81,56 @@ export default function AdminJobs() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
-        {jobList.map((job) => (
-          <div key={job.jobId} className="card card-hover">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-              <span className="badge badge-primary">{job.workMode}</span>
-              <StatusBadge status={job.status} />
+      {jobList.length === 0 ? (
+        <div className="card" style={{ padding: 32 }}>
+          <EmptyState
+            icon={<Briefcase size={48} color="var(--gray-400)" />}
+            title="No placement opportunities posted"
+            description="Create job opportunities to invite student applications."
+            action={
+              <button onClick={() => setModalOpen(true)} className="btn btn-primary">
+                + Post First Job
+              </button>
+            }
+          />
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
+          {jobList.map((job) => (
+            <div key={job.jobId} className="card card-hover">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <span className="badge badge-primary">{job.workMode}</span>
+                <StatusBadge status={job.status} />
+              </div>
+
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-900)' }}>
+                {job.title}
+              </h3>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.85rem', color: 'var(--gray-600)', margin: '8px 0 12px' }}>
+                <span style={{ fontWeight: 600 }}>{job.company}</span>
+                <span>•</span>
+                <span>{job.location}</span>
+              </div>
+
+              <p style={{ fontSize: '0.9rem', color: 'var(--gray-700)', lineHeight: 1.5, marginBottom: 12 }}>
+                {job.description}
+              </p>
+
+              <div style={{ padding: '10px 14px', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', marginBottom: 12 }}>
+                <div><strong>Salary:</strong> {job.salaryMin} - {job.salaryMax}</div>
+                <div style={{ marginTop: 2 }}><strong>Openings:</strong> {job.openings} positions</div>
+                <div style={{ marginTop: 2 }}><strong>Eligibility:</strong> {job.eligibilityCriteria}</div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--gray-500)', paddingTop: 10, borderTop: '1px solid var(--gray-100)' }}>
+                <span>Deadline: <strong>{job.applicationDeadline}</strong></span>
+                <span>ID: {job.jobId}</span>
+              </div>
             </div>
-
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-900)' }}>
-              {job.title}
-            </h3>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.85rem', color: 'var(--gray-600)', margin: '8px 0 12px' }}>
-              <span style={{ fontWeight: 600 }}>{job.company}</span>
-              <span>•</span>
-              <span>{job.location}</span>
-            </div>
-
-            <p style={{ fontSize: '0.9rem', color: 'var(--gray-700)', lineHeight: 1.5, marginBottom: 12 }}>
-              {job.description}
-            </p>
-
-            <div style={{ padding: '10px 14px', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', marginBottom: 12 }}>
-              <div><strong>Salary:</strong> {job.salaryMin} - {job.salaryMax}</div>
-              <div style={{ marginTop: 2 }}><strong>Openings:</strong> {job.openings} positions</div>
-              <div style={{ marginTop: 2 }}><strong>Eligibility:</strong> {job.eligibilityCriteria}</div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--gray-500)', paddingTop: 10, borderTop: '1px solid var(--gray-100)' }}>
-              <span>Deadline: <strong>{job.applicationDeadline}</strong></span>
-              <span>ID: {job.jobId}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Create Job Modal */}
       {modalOpen && (

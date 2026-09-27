@@ -15,67 +15,7 @@ export default function Modules() {
     modulesApi.getModules()
   );
 
-  // Fallback demo modules if backend API not yet populated
-  const fallbackModules: Module[] = [
-    {
-      moduleId: 'MOD000001',
-      courseId: 'CRS000001',
-      title: 'HTML & CSS Fundamentals',
-      description: 'Master semantic HTML5 structures, modern CSS styling, box model, and layout architectures.',
-      sequence: 1,
-      durationHours: '40',
-      status: 'ACTIVE',
-      totalLessons: 5,
-      completedLessons: 5,
-      progressPercent: 100,
-      isLocked: false,
-      moduleStatus: 'COMPLETED'
-    },
-    {
-      moduleId: 'MOD000002',
-      courseId: 'CRS000001',
-      title: 'JavaScript Essentials & DOM',
-      description: 'ES6+ syntax, asynchronous JavaScript, Promises, Fetch API, DOM manipulation and event delegation.',
-      sequence: 2,
-      durationHours: '60',
-      status: 'ACTIVE',
-      totalLessons: 6,
-      completedLessons: 6,
-      progressPercent: 100,
-      isLocked: false,
-      moduleStatus: 'COMPLETED'
-    },
-    {
-      moduleId: 'MOD000003',
-      courseId: 'CRS000001',
-      title: 'React Frontend Development',
-      description: 'Component architecture, state & props, hooks, routing, Context API, and form handling.',
-      sequence: 3,
-      durationHours: '80',
-      status: 'ACTIVE',
-      totalLessons: 8,
-      completedLessons: 3,
-      progressPercent: 37,
-      isLocked: false,
-      moduleStatus: 'IN_PROGRESS'
-    },
-    {
-      moduleId: 'MOD000004',
-      courseId: 'CRS000001',
-      title: 'Backend, REST APIs & Google Sheets Integration',
-      description: 'Google Apps Script serverless backend, RESTful API architecture, Sheets database queries and LockService.',
-      sequence: 4,
-      durationHours: '80',
-      status: 'ACTIVE',
-      totalLessons: 7,
-      completedLessons: 0,
-      progressPercent: 0,
-      isLocked: true,
-      moduleStatus: 'NOT_STARTED'
-    }
-  ];
-
-  const modules = data && data.length > 0 ? data : fallbackModules;
+  const modules = data || [];
 
   if (loading && !data) {
     return <CardSkeleton count={4} />;
@@ -94,8 +34,15 @@ export default function Modules() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
-        {modules.map((mod) => {
+      {modules.length === 0 ? (
+        <EmptyState
+          icon={BookOpen}
+          title="No Modules Available"
+          message="There are currently no modules configured for your enrolled course."
+        />
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 }}>
+          {modules.map((mod) => {
           const isCompleted = mod.progressPercent === 100;
           const isLocked = mod.isLocked;
 
@@ -177,6 +124,7 @@ export default function Modules() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useApi } from '../../hooks/useApi';
 import { modulesApi } from '../../api/client';
 import { Module, Lesson } from '../../types';
 import ProgressBar from '../../components/ui/ProgressBar';
+import EmptyState from '../../components/ui/EmptyState';
 import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import {
   ArrowLeft,
@@ -13,7 +14,8 @@ import {
   FileText,
   Clock,
   Video,
-  ChevronRight
+  ChevronRight,
+  BookOpen
 } from 'lucide-react';
 
 interface ModuleDetailData {
@@ -30,81 +32,27 @@ export default function ModuleDetail() {
     [moduleId]
   );
 
-  // Fallback demo data
-  const fallbackLessons: Lesson[] = [
-    {
-      lessonId: 'LES000001',
-      moduleId: moduleId || 'MOD000003',
-      title: 'Introduction to React & Component Architecture',
-      description: 'Understanding Virtual DOM, JSX syntax, functional components and props hierarchy.',
-      sequence: 1,
-      isRequired: 'true',
-      status: 'ACTIVE',
-      isCompleted: true,
-      isLocked: false
-    },
-    {
-      lessonId: 'LES000002',
-      moduleId: moduleId || 'MOD000003',
-      title: 'State Management with useState Hook',
-      description: 'Managing reactive UI state, immutability principles, and event handling patterns.',
-      sequence: 2,
-      isRequired: 'true',
-      status: 'ACTIVE',
-      isCompleted: true,
-      isLocked: false
-    },
-    {
-      lessonId: 'LES000003',
-      moduleId: moduleId || 'MOD000003',
-      title: 'Side Effects and Lifecycle with useEffect',
-      description: 'Asynchronous operations, API fetching, dependency array pitfalls, and cleanup functions.',
-      sequence: 3,
-      isRequired: 'true',
-      status: 'ACTIVE',
-      isCompleted: true,
-      isLocked: false
-    },
-    {
-      lessonId: 'LES000004',
-      moduleId: moduleId || 'MOD000003',
-      title: 'Advanced Hooks: useReducer, useMemo & useCallback',
-      description: 'Optimizing performance, complex state transitions, and memoization strategies.',
-      sequence: 4,
-      isRequired: 'true',
-      status: 'ACTIVE',
-      isCompleted: false,
-      isLocked: false // Current active lesson
-    },
-    {
-      lessonId: 'LES000005',
-      moduleId: moduleId || 'MOD000003',
-      title: 'Context API and Global State Management',
-      description: 'Creating theme and authentication providers without prop drilling.',
-      sequence: 5,
-      isRequired: 'true',
-      status: 'ACTIVE',
-      isCompleted: false,
-      isLocked: true // Locked until lesson 4 is completed
-    }
-  ];
-
-  const moduleInfo = data?.module || {
-    moduleId: moduleId || 'MOD000003',
-    courseId: 'CRS000001',
-    title: 'React Frontend Development',
-    description: 'Learn modern React with TypeScript, hooks, state management, and real database integrations.',
-    sequence: 3,
-    durationHours: '80',
-    status: 'ACTIVE'
-  };
-
-  const lessons = data?.lessons && data.lessons.length > 0 ? data.lessons : fallbackLessons;
+  const moduleInfo = data?.module;
+  const lessons = data?.lessons || [];
   const completedCount = lessons.filter(l => l.isCompleted).length;
   const progressPercent = lessons.length > 0 ? Math.round((completedCount / lessons.length) * 100) : 0;
 
   if (loading && !data) {
     return <CardSkeleton count={5} />;
+  }
+
+  if (!moduleInfo) {
+    return (
+      <div style={{ maxWidth: 640, margin: '40px auto' }}>
+        <EmptyState
+          icon={BookOpen}
+          title="Module Not Found"
+          message="The requested module details could not be found."
+          actionLabel="Back to All Modules"
+          onAction={() => navigate('/modules')}
+        />
+      </div>
+    );
   }
 
   return (
@@ -154,22 +102,29 @@ export default function ModuleDetail() {
           Lessons & Learning Material
         </h3>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {lessons.map((lesson, idx) => {
-            const isCompleted = lesson.isCompleted;
-            const isLocked = lesson.isLocked;
+        {lessons.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="No Lessons Available"
+            message="No lessons have been published for this module yet."
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {lessons.map((lesson, idx) => {
+              const isCompleted = lesson.isCompleted;
+              const isLocked = lesson.isLocked;
 
-            return (
-              <div
-                key={lesson.lessonId}
-                className={`lesson-item ${isLocked ? 'locked' : ''} ${isCompleted ? 'completed' : ''}`}
-                onClick={() => {
-                  if (!isLocked) {
-                    navigate(`/lessons/${lesson.lessonId}`);
-                  }
-                }}
-                style={{ cursor: isLocked ? 'not-allowed' : 'pointer' }}
-              >
+              return (
+                <div
+                  key={lesson.lessonId}
+                  className={`lesson-item ${isLocked ? 'locked' : ''} ${isCompleted ? 'completed' : ''}`}
+                  onClick={() => {
+                    if (!isLocked) {
+                      navigate(`/lessons/${lesson.lessonId}`);
+                    }
+                  }}
+                  style={{ cursor: isLocked ? 'not-allowed' : 'pointer' }}
+                >
                 <div
                   style={{
                     width: 36,
@@ -228,6 +183,7 @@ export default function ModuleDetail() {
             );
           })}
         </div>
+        )}
       </div>
     </div>
   );

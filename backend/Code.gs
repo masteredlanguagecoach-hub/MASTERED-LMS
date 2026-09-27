@@ -69,10 +69,13 @@ function handleRequest(e) {
       case 'createStudent':       result = handleCreateStudent(params); break;
       case 'updateStudent':       result = handleUpdateStudent(params); break;
       case 'getStudentProfile':   result = handleGetStudentProfile(params); break;
+      case 'validateStudentImport': result = handleValidateStudentImport(params); break;
+      case 'confirmStudentImport':  result = handleConfirmStudentImport(params); break;
 
       // ── Courses & Batches ─────────────────────────────────
       case 'getCourses':          result = handleGetCourses(params); break;
       case 'createCourse':        result = handleCreateCourse(params); break;
+      case 'updateCourse':        result = handleUpdateCourse(params); break;
       case 'getBatches':          result = handleGetBatches(params); break;
       case 'createBatch':         result = handleCreateBatch(params); break;
       case 'getBatchStudents':    result = handleGetBatchStudents(params); break;
@@ -96,6 +99,8 @@ function handleRequest(e) {
       case 'getAssessmentDetails':result = handleGetAssessmentDetails(params); break;
       case 'submitAssessment':    result = handleSubmitAssessment(params); break;
       case 'createAssessment':    result = handleCreateAssessment(params); break;
+      case 'recordAssessment':    result = handleRecordAssessment(params); break;
+      case 'getAssessmentHistory':result = handleGetAssessmentHistory(params); break;
 
       // ── Assignments ───────────────────────────────────────
       case 'getAssignments':      result = handleGetAssignments(params); break;
@@ -108,6 +113,8 @@ function handleRequest(e) {
       case 'getInstallments':     result = handleGetInstallments(params); break;
       case 'getPayments':         result = handleGetPayments(params); break;
       case 'recordPayment':       result = handleRecordPayment(params); break;
+      case 'editStudentFee':      result = handleEditStudentFee(params); break;
+      case 'getFeeHistory':       result = handleGetFeeHistory(params); break;
 
       // ── Chat & Announcements ──────────────────────────────
       case 'getChatMessages':     result = handleGetChatMessages(params); break;
@@ -121,8 +128,15 @@ function handleRequest(e) {
       case 'markAllNotificationsRead':    result = handleMarkAllNotificationsRead(params); break;
 
       // ── Placements ────────────────────────────────────────
-      case 'getPlacements':           result = handleGetPlacements(params); break;
-      case 'updatePlacementProfile':  result = handleUpdatePlacementProfile(params); break;
+      case 'getPlacements':               result = handleGetPlacements(params); break;
+      case 'updatePlacementProfile':      result = handleUpdatePlacementProfile(params); break;
+      case 'getPlacementCandidates':      result = handleGetPlacementCandidates(params); break;
+      case 'getPlacementProfile':         result = handleGetPlacementProfile(params); break;
+      case 'updatePlacementStatus':       result = handleUpdatePlacementStatus(params); break;
+      case 'assignInterview':             result = handleAssignInterview(params); break;
+      case 'updateInterview':             result = handleUpdateInterview(params); break;
+      case 'getInterviewHistory':         result = handleGetInterviewHistory(params); break;
+      case 'getPlacementStatusHistory':   result = handleGetPlacementStatusHistory(params); break;
 
       // ── Jobs & Internships ────────────────────────────────
       case 'getJobs':             result = handleGetJobs(params); break;
@@ -144,8 +158,9 @@ function handleRequest(e) {
       case 'getAdminDashboard':   result = handleGetAdminDashboard(params); break;
       case 'getReports':          result = handleGetReports(params); break;
 
-      // ── Database setup ────────────────────────────────────
+      // ── Database setup & upgrade ──────────────────────────
       case 'initializeDatabase':  result = { success: true, data: initializeDatabase() }; break;
+      case 'upgradeDatabase':     result = { success: true, data: upgradeDatabase() }; break;
       case 'seedDemoData':        result = { success: true, data: seedDemoData() }; break;
 
       default:

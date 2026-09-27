@@ -336,6 +336,17 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               </NavLink>
 
               <NavLink
+                to="/admin/placements"
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `sidebar-nav-item ${isActive ? 'active' : ''}`
+                }
+              >
+                <GraduationCap size={18} />
+                <span>Placement Candidates</span>
+              </NavLink>
+
+              <NavLink
                 to="/admin/reports"
                 onClick={onClose}
                 className={({ isActive }) =>

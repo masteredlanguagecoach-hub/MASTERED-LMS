@@ -51,6 +51,7 @@ function initializeSettings(ss) {
     ['ASSESSMENT_PASS_PERCENT', '60', 'Minimum percentage to pass an assessment', now()],
     ['PLACEMENT_MIN_ATTENDANCE', '75', 'Minimum attendance for placement readiness', now()],
     ['PLACEMENT_MIN_ASSESSMENTS', '70', 'Minimum assessment completion for placement readiness', now()],
+    ['NEAR_COMPLETION_PERCENT', '80', 'Minimum percentage for near completion placement eligibility', now()],
     ['SESSION_EXPIRY_HOURS', '24', 'Session expiry in hours', now()],
     ['MAX_FILE_SIZE_MB', '25', 'Maximum upload file size in MB', now()],
     ['ALLOWED_FILE_TYPES', 'pdf,doc,docx,jpg,jpeg,png,mp4,zip', 'Comma-separated allowed file types', now()],
@@ -98,7 +99,7 @@ function getDatabaseSchemas() {
     {
       name: CONFIG.SHEETS.COURSES,
       headers: ['COURSE_ID','TITLE','SHORT_CODE','DESCRIPTION','DURATION_WEEKS',
-                 'DURATION_HOURS','LEVEL','THUMBNAIL_URL','STATUS',
+                 'DURATION_HOURS','LEVEL','THUMBNAIL_URL','DEFAULT_FEE','STATUS',
                  'CREATED_BY','CREATED_AT','UPDATED_AT']
     },
     {
@@ -115,7 +116,7 @@ function getDatabaseSchemas() {
     {
       name: CONFIG.SHEETS.MODULES,
       headers: ['MODULE_ID','COURSE_ID','TITLE','DESCRIPTION','SEQUENCE',
-                 'DURATION_HOURS','STATUS','CREATED_AT','UPDATED_AT']
+                 'DURATION_HOURS','ALLOW_MOCK_INTERVIEW','STATUS','CREATED_AT','UPDATED_AT']
     },
     {
       name: CONFIG.SHEETS.LESSONS,
@@ -166,6 +167,8 @@ function getDatabaseSchemas() {
       name: CONFIG.SHEETS.STUDENT_ASSESSMENTS,
       headers: ['SA_ID','STUDENT_ID','ASSESSMENT_ID','ATTEMPT_NUMBER',
                  'SCORE','TOTAL_MARKS','PERCENTAGE','STATUS',
+                 'COURSE_ID','BATCH_ID','MODULE_ID','TOPIC','ASSESSMENT_TYPE',
+                 'IS_ABSENT','MARKS','CATEGORY','TRAINER_ID','TRAINER_NAME','REMARKS',
                  'STARTED_AT','SUBMITTED_AT','GRADED_BY','GRADED_AT',
                  'FEEDBACK','CREATED_AT','UPDATED_AT']
     },
@@ -189,7 +192,8 @@ function getDatabaseSchemas() {
     {
       name: CONFIG.SHEETS.FEES,
       headers: ['FEE_ID','STUDENT_ID','BATCH_ID','COURSE_ID','TOTAL_AMOUNT',
-                 'PAID_AMOUNT','PENDING_AMOUNT','DISCOUNT_AMOUNT','DISCOUNT_REASON',
+                 'PAID_AMOUNT','PENDING_AMOUNT','REGISTRATION_FEE','TUITION_FEE',
+                 'DISCOUNT_AMOUNT','DISCOUNT_REASON','OTHER_CHARGES','NOTES',
                  'STATUS','CREATED_AT','UPDATED_AT']
     },
     {
@@ -235,6 +239,23 @@ function getDatabaseSchemas() {
                  'CREATED_AT','UPDATED_AT']
     },
     {
+      name: CONFIG.SHEETS.PLACEMENT_STATUS_HISTORY,
+      headers: ['HISTORY_ID','STUDENT_ID','ADMISSION_NUMBER','PREVIOUS_STATUS',
+                 'NEW_STATUS','CHANGED_BY','CHANGED_DATE','REMARKS','CREATED_AT']
+    },
+    {
+      name: CONFIG.SHEETS.INTERVIEWS,
+      headers: ['INTERVIEW_ID','STUDENT_ID','ADMISSION_NUMBER','COMPANY','POSITION',
+                 'INTERVIEW_TYPE','INTERVIEW_DATE','INTERVIEW_TIME','LOCATION',
+                 'ASSIGNED_BY','ASSIGNED_DATE','STATUS','RESULT','FEEDBACK',
+                 'REMARKS','CREATED_AT','UPDATED_AT']
+    },
+    {
+      name: CONFIG.SHEETS.FEE_CHANGE_HISTORY,
+      headers: ['FCH_ID','STUDENT_ID','FEE_ID','OLD_FEE','NEW_FEE',
+                 'CHANGED_BY','CHANGED_DATE','REASON','CREATED_AT']
+    },
+    {
       name: CONFIG.SHEETS.JOBS,
       headers: ['JOB_ID','TITLE','COMPANY','COMPANY_LOGO_URL','LOCATION',
                  'WORK_MODE','SALARY_MIN','SALARY_MAX','OPENINGS','DESCRIPTION',
@@ -275,6 +296,78 @@ function getDatabaseSchemas() {
       headers: ['KEY','VALUE','DESCRIPTION','UPDATED_AT']
     }
   ];
+}
+
+/**
+ * Non-destructive database upgrade / migration function.
+ * Detects existing sheets, missing columns, appends missing columns,
+ * creates only required new sheets without resetting or inserting demo data.
+ */
+function upgradeDatabase() {
+  const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const schemas = getDatabaseSchemas();
+  const report = {
+    sheetsCreated: [],
+    columnsAdded: {},
+    settingsAdded: []
+  };
+
+  schemas.forEach(schema => {
+    let sheet = ss.getSheetByName(schema.name);
+    if (!sheet) {
+      sheet = ss.insertSheet(schema.name);
+      sheet.getRange(1, 1, 1, schema.headers.length).setValues([schema.headers]);
+      const headerRange = sheet.getRange(1, 1, 1, schema.headers.length);
+      headerRange.setBackground('#1a3a5c');
+      headerRange.setFontColor('#ffffff');
+      headerRange.setFontWeight('bold');
+      sheet.setFrozenRows(1);
+      report.sheetsCreated.push(schema.name);
+      Logger.log('upgradeDatabase: Created sheet ' + schema.name);
+    } else {
+      if (sheet.getLastRow() >= 1) {
+        const lastCol = Math.max(sheet.getLastColumn(), 1);
+        const existingHeaders = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+        const missing = schema.headers.filter(h => !existingHeaders.includes(h));
+        if (missing.length > 0) {
+          const startCol = existingHeaders.filter(Boolean).length + 1;
+          sheet.getRange(1, startCol, 1, missing.length).setValues([missing]);
+          const newHeaderRange = sheet.getRange(1, startCol, 1, missing.length);
+          newHeaderRange.setBackground('#1a3a5c');
+          newHeaderRange.setFontColor('#ffffff');
+          newHeaderRange.setFontWeight('bold');
+          report.columnsAdded[schema.name] = missing;
+          Logger.log('upgradeDatabase: Added columns to ' + schema.name + ': ' + missing.join(', '));
+        }
+      } else {
+        sheet.getRange(1, 1, 1, schema.headers.length).setValues([schema.headers]);
+        const headerRange = sheet.getRange(1, 1, 1, schema.headers.length);
+        headerRange.setBackground('#1a3a5c');
+        headerRange.setFontColor('#ffffff');
+        headerRange.setFontWeight('bold');
+        sheet.setFrozenRows(1);
+      }
+    }
+  });
+
+  // Ensure NEAR_COMPLETION_PERCENT in SETTINGS sheet
+  const settingsSheet = ss.getSheetByName(CONFIG.SHEETS.SETTINGS);
+  if (settingsSheet && settingsSheet.getLastRow() >= 1) {
+    const data = settingsSheet.getDataRange().getValues();
+    const existingKeys = data.map(r => r[0]);
+    if (!existingKeys.includes('NEAR_COMPLETION_PERCENT')) {
+      appendRow(CONFIG.SHEETS.SETTINGS, {
+        KEY: 'NEAR_COMPLETION_PERCENT',
+        VALUE: '80',
+        DESCRIPTION: 'Minimum percentage for near completion placement eligibility',
+        UPDATED_AT: now()
+      });
+      report.settingsAdded.push('NEAR_COMPLETION_PERCENT');
+    }
+  }
+
+  Logger.log('upgradeDatabase completed: ' + JSON.stringify(report));
+  return report;
 }
 
 /**

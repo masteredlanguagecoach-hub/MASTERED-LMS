@@ -14,51 +14,7 @@ export default function Applications() {
     jobsApi.getApplications()
   );
 
-  const fallbackApplications: Application[] = [
-    {
-      applicationId: 'APP000001',
-      studentId: 'STD000001',
-      jobId: 'JOB000001',
-      type: 'JOB',
-      status: 'INTERVIEW_SCHEDULED',
-      appliedAt: '2026-03-15T11:00:00Z',
-      interviewDate: '2026-04-05T14:00:00Z',
-      resumeUrl: 'https://drive.google.com/file/d/sample-resume',
-      jobDetails: {
-        jobId: 'JOB000001',
-        title: 'Junior React Frontend Developer',
-        company: 'Innovatech Digital Solutions',
-        location: 'Bangalore, India',
-        workMode: 'Hybrid',
-        openings: '3',
-        description: 'Frontend role focused on React and modern CSS systems.',
-        status: 'ACTIVE',
-        createdAt: '2026-03-01'
-      }
-    },
-    {
-      applicationId: 'APP000002',
-      studentId: 'STD000001',
-      internshipId: 'INT000001',
-      type: 'INTERNSHIP',
-      status: 'SHORTLISTED',
-      appliedAt: '2026-03-18T09:30:00Z',
-      internshipDetails: {
-        internshipId: 'INT000001',
-        title: 'Frontend UI/UX Engineering Intern',
-        company: 'NexGen Cloud Labs',
-        location: 'Remote',
-        workMode: 'Remote',
-        openings: '5',
-        stipend: '₹25,000 / month',
-        description: '6-month paid internship with PPO track.',
-        status: 'ACTIVE',
-        createdAt: '2026-03-12'
-      }
-    }
-  ];
-
-  const applications = data && data.length > 0 ? data : fallbackApplications;
+  const applications = data || [];
 
   if (loading && !data) {
     return <CardSkeleton count={3} />;

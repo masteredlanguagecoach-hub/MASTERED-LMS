@@ -49,46 +49,23 @@ export default function TrainerDashboard() {
     trainerApi.getDashboard()
   );
 
-  const fallbackData: TrainerDashboardData = {
+  const defaultData: TrainerDashboardData = {
     trainer: {
-      trainerId: 'TRN000001',
-      fullName: 'Rajesh Kumar',
-      specialization: 'Full Stack Web Development & React'
+      trainerId: '',
+      fullName: '',
+      specialization: ''
     },
     stats: {
-      totalBatches: 2,
-      totalStudents: 48,
-      todayClasses: 1,
-      pendingReviews: 4
+      totalBatches: 0,
+      totalStudents: 0,
+      todayClasses: 0,
+      pendingReviews: 0
     },
-    batches: [
-      {
-        batchId: 'BAT000001',
-        batchName: 'FSWD - Batch 2026 A',
-        timing: '10:00 AM - 1:00 PM',
-        mode: 'Online Interactive',
-        status: 'ACTIVE'
-      },
-      {
-        batchId: 'BAT000002',
-        batchName: 'FSWD - Batch 2026 B',
-        timing: '2:00 PM - 5:00 PM',
-        mode: 'Online Interactive',
-        status: 'ACTIVE'
-      }
-    ],
-    todayClasses: [
-      {
-        classId: 'CLS000012',
-        batchId: 'BAT000001',
-        title: 'React Custom Hooks & State Performance',
-        startTime: '10:00 AM',
-        meetingLink: 'https://meet.google.com/abc-defg-hij'
-      }
-    ]
+    batches: [],
+    todayClasses: []
   };
 
-  const td = data || fallbackData;
+  const td = data || defaultData;
 
   if (loading && !data) {
     return <CardSkeleton count={3} />;
@@ -195,53 +172,59 @@ export default function TrainerDashboard() {
           Today's Scheduled Faculty Sessions
         </h3>
 
-        {td.todayClasses.map((cls) => (
-          <div
-            key={cls.classId}
-            style={{
-              padding: '16px 20px',
-              borderRadius: 'var(--radius-md)',
-              border: '1.5px solid var(--primary-200)',
-              background: 'var(--primary-50)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 16
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary-700)', textTransform: 'uppercase' }}>
-                Batch ID: {cls.batchId} • Starts {cls.startTime}
-              </div>
-              <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gray-900)', marginTop: 2 }}>
-                {cls.title}
-              </h4>
-            </div>
-
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button
-                onClick={() => navigate('/trainer/attendance')}
-                className="btn btn-secondary btn-sm"
-              >
-                Mark Attendance
-              </button>
-
-              {cls.meetingLink && (
-                <a
-                  href={cls.meetingLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-primary btn-sm"
-                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                >
-                  <Video size={16} />
-                  <span>Launch Google Meet</span>
-                </a>
-              )}
-            </div>
+        {td.todayClasses.length === 0 ? (
+          <div style={{ padding: '24px', textAlign: 'center', color: 'var(--gray-500)', fontSize: '0.9rem' }}>
+            No live classes scheduled for today.
           </div>
-        ))}
+        ) : (
+          td.todayClasses.map((cls) => (
+            <div
+              key={cls.classId}
+              style={{
+                padding: '16px 20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1.5px solid var(--primary-200)',
+                background: 'var(--primary-50)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 16
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--primary-700)', textTransform: 'uppercase' }}>
+                  Batch ID: {cls.batchId} • Starts {cls.startTime}
+                </div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--gray-900)', marginTop: 2 }}>
+                  {cls.title}
+                </h4>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={() => navigate('/trainer/attendance')}
+                  className="btn btn-secondary btn-sm"
+                >
+                  Mark Attendance
+                </button>
+
+                {cls.meetingLink && (
+                  <a
+                    href={cls.meetingLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary btn-sm"
+                    style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Video size={16} />
+                    <span>Launch Google Meet</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

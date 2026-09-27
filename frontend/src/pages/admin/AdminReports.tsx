@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { adminApi } from '../../api/client';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { BarChart3, Download, Filter, CalendarCheck, CreditCard, Award, GraduationCap } from 'lucide-react';
 
 export default function AdminReports() {
@@ -12,13 +13,7 @@ export default function AdminReports() {
     [reportType]
   );
 
-  const fallbackAttendance = [
-    { studentId: 'STD000001', name: 'Priya Sharma', admissionNumber: 'STD000001', total: 28, present: 24, absent: 4, percent: 86 },
-    { studentId: 'STD000002', name: 'Aman Verma', admissionNumber: 'STD000002', total: 28, present: 26, absent: 2, percent: 93 },
-    { studentId: 'STD000003', name: 'Sneha Patel', admissionNumber: 'STD000003', total: 28, present: 20, absent: 8, percent: 71 }
-  ];
-
-  const reportData = data && data.length > 0 ? data : fallbackAttendance;
+  const reportData = data || [];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -81,8 +76,21 @@ export default function AdminReports() {
           </button>
         </div>
 
-        <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
-          {reportType === 'attendance' && (
+        {loading ? (
+          <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-500)' }}>
+            Generating report from Google Sheets...
+          </div>
+        ) : reportData.length === 0 ? (
+          <div style={{ padding: 32 }}>
+            <EmptyState
+              icon={<BarChart3 size={48} color="var(--gray-400)" />}
+              title="No report records available"
+              description="Records will automatically populate as students are enrolled, attend classes, or take assessments."
+            />
+          </div>
+        ) : (
+          <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
+            {reportType === 'attendance' && (
             <table>
               <thead>
                 <tr>
@@ -171,6 +179,7 @@ export default function AdminReports() {
             </table>
           )}
         </div>
+      )}
       </div>
     </div>
   );

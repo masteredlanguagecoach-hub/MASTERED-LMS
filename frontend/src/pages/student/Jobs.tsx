@@ -4,6 +4,7 @@ import { useApi } from '../../hooks/useApi';
 import { jobsApi } from '../../api/client';
 import { Job, Internship } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import {
   Briefcase,
@@ -13,6 +14,7 @@ import {
   Users,
   Clock,
   ArrowRight,
+  GraduationCap,
   Send,
   X,
   FileCheck
@@ -36,67 +38,12 @@ export default function Jobs() {
     jobsApi.getInternships()
   );
 
-  const fallbackJobs: Job[] = [
-    {
-      jobId: 'JOB000001',
-      title: 'Junior React Frontend Developer',
-      company: 'Innovatech Digital Solutions',
-      location: 'Bangalore, India',
-      workMode: 'Hybrid',
-      salaryMin: '₹5,50,000',
-      salaryMax: '₹7,50,000 PA',
-      openings: '3',
-      description: 'Looking for a skilled frontend engineer proficient in React, TypeScript, and state management.',
-      responsibilities: 'Build interactive user experiences, collaborate with backend engineers, and maintain clean UI codebases.',
-      requirements: 'Strong command of React, CSS3 Flexbox/Grid, REST API consumption.',
-      eligibilityCriteria: 'Minimum 75% attendance and passed Academy technical assessments.',
-      applicationDeadline: '2026-05-30',
-      status: 'ACTIVE',
-      createdAt: '2026-03-01'
-    },
-    {
-      jobId: 'JOB000002',
-      title: 'Full Stack Web Developer (Node.js & React)',
-      company: 'CloudSphere Technologies',
-      location: 'Hyderabad, India',
-      workMode: 'On-site',
-      salaryMin: '₹6,00,000',
-      salaryMax: '₹8,50,000 PA',
-      openings: '2',
-      description: 'Design robust APIs and scalable web applications in modern full-stack workflows.',
-      responsibilities: 'Implement serverless backend handlers, database schema design, and secure authentication.',
-      requirements: 'Experience with Node.js, Express, databases, and React frontends.',
-      eligibilityCriteria: 'Passed Technical Mock Interview.',
-      applicationDeadline: '2026-06-15',
-      status: 'ACTIVE',
-      createdAt: '2026-03-10'
-    }
-  ];
-
-  const fallbackInternships: Internship[] = [
-    {
-      internshipId: 'INT000001',
-      title: 'Frontend UI/UX Engineering Intern',
-      company: 'NexGen Cloud Labs',
-      location: 'Remote',
-      workMode: 'Remote',
-      stipend: '₹25,000 / month',
-      durationMonths: '6 Months',
-      openings: '5',
-      description: 'Six months paid internship with direct PPO (Pre-Placement Offer) potential for top performers.',
-      requirements: 'Good eye for responsive design, CSS animations, and React fundamentals.',
-      applicationDeadline: '2026-05-15',
-      status: 'ACTIVE',
-      createdAt: '2026-03-12'
-    }
-  ];
-
-  const jobs = jobsData && jobsData.length > 0 ? jobsData : fallbackJobs;
-  const internships = internshipsData && internshipsData.length > 0 ? internshipsData : fallbackInternships;
+  const jobs = jobsData || [];
+  const internships = internshipsData || [];
 
   const handleOpenApply = (id: string, title: string, company: string, type: 'JOB' | 'INTERNSHIP') => {
     setSelectedOpportunity({ id, title, company, type });
-    setResumeUrl('https://drive.google.com/file/d/sample-resume/view');
+    setResumeUrl('');
     setCoverLetter('');
     setAppliedSuccess(false);
     setApplyModalOpen(true);
@@ -165,62 +112,77 @@ export default function Jobs() {
 
       {/* Jobs Listing */}
       {activeTab === 'jobs' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {jobs.map((job) => (
-            <div key={job.jobId} className="card card-hover">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span className="badge badge-primary">{job.workMode}</span>
-                    <span className="badge badge-gray">{job.openings} Openings</span>
+        jobs.length === 0 ? (
+          <EmptyState
+            icon={Briefcase}
+            title="No Active Job Drives"
+            message="There are currently no job openings listed. Check back soon or contact the placement cell."
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {jobs.map((job) => (
+              <div key={job.jobId} className="card card-hover">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <span className="badge badge-primary">{job.workMode}</span>
+                      <span className="badge badge-gray">{job.openings} Openings</span>
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-900)' }}>
+                      {job.title}
+                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: 4 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+                        <Building size={16} /> {job.company}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <MapPin size={16} /> {job.location}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#16a34a', fontWeight: 700 }}>
+                        <DollarSign size={16} /> {job.salaryMin} - {job.salaryMax}
+                      </span>
+                    </div>
                   </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-900)' }}>
-                    {job.title}
-                  </h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: '0.85rem', color: 'var(--gray-600)', marginTop: 4 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
-                      <Building size={16} /> {job.company}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <MapPin size={16} /> {job.location}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#16a34a', fontWeight: 700 }}>
-                      <DollarSign size={16} /> {job.salaryMin} - {job.salaryMax}
-                    </span>
-                  </div>
+
+                  <button
+                    onClick={() => handleOpenApply(job.jobId, job.title, job.company, 'JOB')}
+                    className="btn btn-primary"
+                    style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <span>Apply Now</span>
+                    <ArrowRight size={16} />
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => handleOpenApply(job.jobId, job.title, job.company, 'JOB')}
-                  className="btn btn-primary"
-                  style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                >
-                  <span>Apply Now</span>
-                  <ArrowRight size={16} />
-                </button>
-              </div>
+                <p style={{ fontSize: '0.9rem', color: 'var(--gray-700)', lineHeight: 1.5, marginBottom: 12 }}>
+                  {job.description}
+                </p>
 
-              <p style={{ fontSize: '0.9rem', color: 'var(--gray-700)', lineHeight: 1.5, marginBottom: 12 }}>
-                {job.description}
-              </p>
+                <div style={{ padding: '12px 16px', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div><strong>Requirements:</strong> {job.requirements}</div>
+                  <div><strong>Eligibility:</strong> {job.eligibilityCriteria}</div>
+                </div>
 
-              <div style={{ padding: '12px 16px', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <div><strong>Requirements:</strong> {job.requirements}</div>
-                <div><strong>Eligibility:</strong> {job.eligibilityCriteria}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--gray-500)', marginTop: 12 }}>
+                  <span>Application Deadline: <strong>{job.applicationDeadline}</strong></span>
+                  <span>Opportunity ID: {job.jobId}</span>
+                </div>
               </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--gray-500)', marginTop: 12 }}>
-                <span>Application Deadline: <strong>{job.applicationDeadline}</strong></span>
-                <span>Opportunity ID: {job.jobId}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Internships Listing */}
       {activeTab === 'internships' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        internships.length === 0 ? (
+          <EmptyState
+            icon={GraduationCap}
+            title="No Active Internships"
+            message="There are currently no internship opportunities listed. Check back soon."
+          />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {internships.map((int) => (
             <div key={int.internshipId} className="card card-hover">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
@@ -270,6 +232,7 @@ export default function Jobs() {
             </div>
           ))}
         </div>
+        )
       )}
 
       {/* Application Modal */}

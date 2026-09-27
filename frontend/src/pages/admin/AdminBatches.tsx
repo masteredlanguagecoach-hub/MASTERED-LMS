@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { adminApi } from '../../api/client';
-import { Batch } from '../../types';
+import { Batch, Course } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { Calendar, Plus, Clock, Users, MapPin, X } from 'lucide-react';
 
 export default function AdminBatches() {
   const { data, loading, refetch } = useApi<Batch[]>(() =>
     adminApi.getBatches()
   );
+  const { data: coursesData } = useApi<Course[]>(() => adminApi.getCourses());
 
   const [modalOpen, setModalOpen] = useState(false);
   const [batchName, setBatchName] = useState('');
-  const [courseId, setCourseId] = useState('CRS000001');
+  const [courseId, setCourseId] = useState('');
   const [trainerId, setTrainerId] = useState('TRN000001');
   const [startDate, setStartDate] = useState('');
   const [schedule, setSchedule] = useState('Monday, Wednesday, Friday');
@@ -21,38 +23,15 @@ export default function AdminBatches() {
   const [maxStudents, setMaxStudents] = useState('30');
   const [saving, setSaving] = useState(false);
 
-  const fallbackBatches: Batch[] = [
-    {
-      batchId: 'BAT000001',
-      batchName: 'FSWD - Batch 2026 A',
-      courseId: 'CRS000001',
-      trainerId: 'TRN000001',
-      startDate: '2026-01-06',
-      endDate: '2026-06-30',
-      schedule: 'Monday, Wednesday, Friday',
-      timing: '10:00 AM - 1:00 PM',
-      venue: 'Online Interactive',
-      mode: 'Online',
-      maxStudents: '30',
-      status: 'ACTIVE'
-    },
-    {
-      batchId: 'BAT000002',
-      batchName: 'FSWD - Batch 2026 B',
-      courseId: 'CRS000001',
-      trainerId: 'TRN000001',
-      startDate: '2026-02-01',
-      endDate: '2026-07-31',
-      schedule: 'Tuesday, Thursday, Saturday',
-      timing: '2:00 PM - 5:00 PM',
-      venue: 'Online Interactive',
-      mode: 'Online',
-      maxStudents: '25',
-      status: 'ACTIVE'
-    }
-  ];
+  const batches = data || [];
+  const courses = coursesData || [];
 
-  const batches = data && data.length > 0 ? data : fallbackBatches;
+  const handleOpenModal = () => {
+    setBatchName('');
+    setCourseId(courses[0]?.courseId || '');
+    setStartDate(new Date().toISOString().split('T')[0]);
+    setModalOpen(true);
+  };
 
   const handleCreateBatch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,11 +69,7 @@ export default function AdminBatches() {
         </div>
 
         <button
-          onClick={() => {
-            setBatchName('');
-            setStartDate(new Date().toISOString().split('T')[0]);
-            setModalOpen(true);
-          }}
+          onClick={handleOpenModal}
           className="btn btn-primary"
           style={{ display: 'flex', alignItems: 'center', gap: 8 }}
         >
@@ -103,48 +78,73 @@ export default function AdminBatches() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
-        {batches.map((batch) => (
-          <div key={batch.batchId} className="card card-hover">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-              <span className="badge badge-primary">{batch.batchId}</span>
-              <StatusBadge status={batch.status} />
-            </div>
+      {loading ? (
+        <div style={{ padding: 40, textAlign: 'center', color: 'var(--gray-500)' }}>
+          Loading batches from Google Sheets...
+        </div>
+      ) : batches.length === 0 ? (
+        <div className="card" style={{ padding: 32 }}>
+          <EmptyState
+            icon={<Calendar size={48} color="var(--gray-400)" />}
+            title="No batches launched"
+            description="Create your first academy batch to enroll students and schedule live classes."
+            action={
+              <button onClick={handleOpenModal} className="btn btn-primary">
+                + Launch First Batch
+              </button>
+            }
+          />
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20 }}>
+          {batches.map((batch) => {
+            const courseMatch = courses.find((c) => c.courseId === batch.courseId);
+            return (
+              <div key={batch.batchId} className="card card-hover">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                  <span className="badge badge-primary">{batch.batchId}</span>
+                  <StatusBadge status={batch.status} />
+                </div>
 
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-900)', marginBottom: 12 }}>
-              {batch.batchName}
-            </h3>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--gray-900)', marginBottom: 4 }}>
+                  {batch.batchName}
+                </h3>
+                <div style={{ fontSize: '0.85rem', color: '#1d4ed8', fontWeight: 600, marginBottom: 12 }}>
+                  {courseMatch ? courseMatch.title : batch.courseId}
+                </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.85rem', color: 'var(--gray-600)', marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Clock size={16} />
-                <span>Timing: <strong>{batch.timing}</strong></span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Calendar size={16} />
-                <span>Schedule: {batch.schedule}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Users size={16} />
-                <span>Trainer: {batch.trainerId} • Max Students: {batch.maxStudents}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <MapPin size={16} />
-                <span>Mode: {batch.mode}</span>
-              </div>
-            </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: '0.85rem', color: 'var(--gray-600)', marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Clock size={16} />
+                    <span>Timing: <strong>{batch.timing}</strong></span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Calendar size={16} />
+                    <span>Schedule: {batch.schedule}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Users size={16} />
+                    <span>Trainer: {batch.trainerId} • Max Students: {batch.maxStudents}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <MapPin size={16} />
+                    <span>Mode: {batch.mode}</span>
+                  </div>
+                </div>
 
-            <div style={{ fontSize: '0.8rem', color: 'var(--gray-500)', paddingTop: 12, borderTop: '1px solid var(--gray-100)' }}>
-              Start Date: <strong>{new Date(batch.startDate).toLocaleDateString()}</strong>
-            </div>
-          </div>
-        ))}
-      </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--gray-500)', paddingTop: 12, borderTop: '1px solid var(--gray-100)' }}>
+                  Start Date: <strong>{batch.startDate ? new Date(batch.startDate).toLocaleDateString() : '—'}</strong>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Batch Modal */}
       {modalOpen && (
         <div className="modal-overlay">
-          <div className="modal">
+          <div className="modal" style={{ maxWidth: 520 }}>
             <div className="modal-header">
               <h3 className="modal-title">Launch New Batch</h3>
               <button className="modal-close" onClick={() => setModalOpen(false)}>
@@ -152,46 +152,53 @@ export default function AdminBatches() {
               </button>
             </div>
 
-            <form onSubmit={handleCreateBatch} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <form onSubmit={handleCreateBatch} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label">Batch Name</label>
+                <label className="form-label">Batch Name *</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. FSWD - Batch 2026 C"
+                  placeholder="e.g. BHA - Batch 2026 A"
                   value={batchName}
                   onChange={(e) => setBatchName(e.target.value)}
                   required
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">Course</label>
+                  <label className="form-label">Course *</label>
                   <select
                     className="form-select"
                     value={courseId}
                     onChange={(e) => setCourseId(e.target.value)}
+                    required
                   >
-                    <option value="CRS000001">Full Stack Web Development</option>
+                    <option value="">-- Select Course --</option>
+                    {courses.map((c) => (
+                      <option key={c.courseId} value={c.courseId}>
+                        {c.shortCode ? `${c.shortCode} - ${c.title}` : c.title}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">Trainer</label>
-                  <select
-                    className="form-select"
+                  <label className="form-label">Trainer ID *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="TRN000001"
                     value={trainerId}
                     onChange={(e) => setTrainerId(e.target.value)}
-                  >
-                    <option value="TRN000001">Rajesh Kumar (TRN000001)</option>
-                  </select>
+                    required
+                  />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label">Start Date</label>
+                  <label className="form-label">Start Date *</label>
                   <input
                     type="date"
                     className="form-input"
@@ -214,10 +221,22 @@ export default function AdminBatches() {
               </div>
 
               <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Schedule Days</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="e.g. Monday, Wednesday, Friday"
+                  value={schedule}
+                  onChange={(e) => setSchedule(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group" style={{ margin: 0 }}>
                 <label className="form-label">Timing</label>
                 <input
                   type="text"
                   className="form-input"
+                  placeholder="e.g. 10:00 AM - 1:00 PM"
                   value={timing}
                   onChange={(e) => setTiming(e.target.value)}
                   required

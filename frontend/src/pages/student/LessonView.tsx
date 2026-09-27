@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { modulesApi } from '../../api/client';
 import { Lesson } from '../../types';
+import EmptyState from '../../components/ui/EmptyState';
+import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -26,41 +28,10 @@ export default function LessonView() {
     [lessonId]
   );
 
-  // Fallback lesson data
-  const fallbackLesson: Lesson = {
-    lessonId: lessonId || 'LES000004',
-    moduleId: 'MOD000003',
-    title: 'Advanced Hooks: useReducer, useMemo & useCallback',
-    description: 'Master performant React state architectures with useReducer and memoization hooks.',
-    sequence: 4,
-    isRequired: 'true',
-    status: 'ACTIVE',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-    audioUrl: '',
-    resourceUrl: 'https://react.dev/reference/react/useReducer',
-    content: `
-### Overview
-The \`useReducer\` hook is an alternative to \`useState\` that gives you better control over complex state management logic that involves multiple sub-values or when the next state depends on the previous one.
-
-\`\`\`javascript
-const [state, dispatch] = useReducer(reducer, initialArg, init?);
-\`\`\`
-
-### When to use useReducer vs useState:
-1. When state transitions have complex business validation rules.
-2. When multiple state variables change in response to a single user interaction.
-3. When testing pure reducer functions in isolation.
-
-### The useCallback and useMemo Hooks:
-- \`useMemo\` caches the result of a calculation between re-renders.
-- \`useCallback\` caches a function definition between re-renders, preventing unnecessary child component re-renders when passing callbacks.
-    `
-  };
-
-  const lesson = data || fallbackLesson;
+  const lesson = data;
 
   const handleMarkComplete = async () => {
+    if (!lesson) return;
     setCompleting(true);
     try {
       const res = await modulesApi.completeLesson(lesson.lessonId, 30);
@@ -74,6 +45,24 @@ const [state, dispatch] = useReducer(reducer, initialArg, init?);
       setCompleting(false);
     }
   };
+
+  if (loading && !data) {
+    return <CardSkeleton count={3} />;
+  }
+
+  if (!lesson) {
+    return (
+      <div style={{ maxWidth: 640, margin: '40px auto' }}>
+        <EmptyState
+          icon={FileText}
+          title="Lesson Not Found"
+          message="The requested lesson details could not be loaded from the database."
+          actionLabel="Back to Modules"
+          onAction={() => navigate('/modules')}
+        />
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 960, margin: '0 auto' }}>

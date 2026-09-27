@@ -63,7 +63,10 @@ const CONFIG = {
     APPLICATION:  'APP',
     PLACEMENT:    'PLC',
     SESSION:      'SES',
-    LOG:          'LOG'
+    LOG:          'LOG',
+    INTERVIEW:    'INTV',
+    PLACEMENT_HISTORY: 'PSH',
+    FEE_HISTORY:  'FCH'
   },
 
   // Sheet names
@@ -96,6 +99,9 @@ const CONFIG = {
     CHAT_MESSAGES:        'CHAT_MESSAGES',
     NOTIFICATIONS:        'NOTIFICATIONS',
     PLACEMENT_PROFILES:   'PLACEMENT_PROFILES',
+    PLACEMENT_STATUS_HISTORY: 'PLACEMENT_STATUS_HISTORY',
+    INTERVIEWS:           'INTERVIEWS',
+    FEE_CHANGE_HISTORY:   'FEE_CHANGE_HISTORY',
     JOBS:                 'JOBS',
     INTERNSHIPS:          'INTERNSHIPS',
     APPLICATIONS:         'APPLICATIONS',
@@ -118,6 +124,47 @@ const CONFIG = {
     ACTIVE:   'ACTIVE',
     INACTIVE: 'INACTIVE',
     ARCHIVED: 'ARCHIVED'
+  },
+
+  // Placement Candidates & Workflow Statuses
+  PLACEMENT_STATUS: {
+    NOT_READY:          'NOT_READY',
+    NEAR_COMPLETION:    'NEAR_COMPLETION',
+    ELIGIBLE:           'ELIGIBLE',
+    INTERVIEW_ASSIGNED: 'INTERVIEW_ASSIGNED',
+    INTERVIEWED:        'INTERVIEWED',
+    SHORTLISTED:        'SHORTLISTED',
+    SELECTED:           'SELECTED',
+    OFFER_RECEIVED:     'OFFER_RECEIVED',
+    PLACED:             'PLACED',
+    NOT_SELECTED:       'NOT_SELECTED',
+    ON_HOLD:            'ON_HOLD',
+    WITHDRAWN:          'WITHDRAWN'
+  },
+
+  // Assessment Types
+  ASSESSMENT_TYPES: {
+    TOPIC_TEST:           'Topic Test',
+    PRESENTATION:         'Presentation',
+    TOPIC_MOCK_INTERVIEW: 'Topic Mock Interview',
+    TOPIC_ATTENDANCE:     'Topic Attendance'
+  },
+
+  // Interview Statuses & Results
+  INTERVIEW_STATUS: {
+    ASSIGNED:   'ASSIGNED',
+    SCHEDULED:  'SCHEDULED',
+    COMPLETED:  'COMPLETED',
+    CANCELLED:  'CANCELLED',
+    NO_SHOW:    'NO_SHOW'
+  },
+
+  INTERVIEW_RESULT: {
+    PENDING:  'PENDING',
+    SELECTED: 'SELECTED',
+    REJECTED: 'REJECTED',
+    WAITING:  'WAITING',
+    OFFERED:  'OFFERED'
   }
 };
 

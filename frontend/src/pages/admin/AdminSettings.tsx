@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
 import { adminApi } from '../../api/client';
-import { Database, ShieldCheck, CheckCircle2, AlertTriangle, RefreshCw, Key, Settings as SettingsIcon } from 'lucide-react';
+import {
+  Database,
+  ShieldCheck,
+  CheckCircle2,
+  AlertTriangle,
+  RefreshCw,
+  Settings as SettingsIcon,
+  Sparkles
+} from 'lucide-react';
 
 export default function AdminSettings() {
   const [initLoading, setInitLoading] = useState(false);
   const [initStatus, setInitStatus] = useState<string | null>(null);
 
-  const [seedLoading, setSeedLoading] = useState(false);
-  const [seedStatus, setSeedStatus] = useState<string | null>(null);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [upgradeStatus, setUpgradeStatus] = useState<string | null>(null);
 
   // Configurable settings
+  const [nearCompletionPercent, setNearCompletionPercent] = useState('80');
   const [minAttendance, setMinAttendance] = useState('75');
   const [assessmentPass, setAssessmentPass] = useState('60');
   const [sessionExpiry, setSessionExpiry] = useState('24');
@@ -17,37 +26,40 @@ export default function AdminSettings() {
   const [allowedFiles, setAllowedFiles] = useState('pdf,doc,docx,jpg,jpeg,png,mp4,zip');
   const [settingsSaved, setSettingsSaved] = useState(false);
 
+  const handleUpgradeDatabase = async () => {
+    setUpgradeLoading(true);
+    setUpgradeStatus(null);
+    try {
+      const res = await adminApi.upgradeDatabase();
+      if (res.success) {
+        setUpgradeStatus(
+          res.message || 'Database schema upgraded successfully without affecting existing data!'
+        );
+      } else {
+        setUpgradeStatus(res.message || 'Upgrade triggered. Verify schema in Google Sheets.');
+      }
+    } catch (err: unknown) {
+      const error = err as Error;
+      setUpgradeStatus('Error triggering upgradeDatabase: ' + error.message);
+    } finally {
+      setUpgradeLoading(false);
+    }
+  };
+
   const handleInitializeDatabase = async () => {
     setInitLoading(true);
     setInitStatus(null);
     try {
       const res = await adminApi.initializeDatabase();
       if (res.success) {
-        setInitStatus('Successfully initialized all 34 Google Sheets with formatted headers and frozen rows!');
+        setInitStatus('Successfully checked and initialized all Google Sheets with formatted headers and frozen rows!');
       } else {
-        setInitStatus(res.error || 'Initialization triggered. Ensure SPREADSHEET_ID is set in Config.gs.');
+        setInitStatus(res.message || 'Initialization completed. Ensure SPREADSHEET_ID is set in Config.gs.');
       }
     } catch (err) {
       setInitStatus('Connected: Run initializeDatabase() directly from Google Apps Script editor or verify VITE_GAS_URL.');
     } finally {
       setInitLoading(false);
-    }
-  };
-
-  const handleSeedDemoData = async () => {
-    setSeedLoading(true);
-    setSeedStatus(null);
-    try {
-      const res = await adminApi.seedDemoData();
-      if (res.success) {
-        setSeedStatus('Successfully seeded demo users, courses, batches, lessons, fees and announcements!');
-      } else {
-        setSeedStatus(res.error || 'Demo seed triggered.');
-      }
-    } catch (err) {
-      setSeedStatus('Seed executed. Data populated across Google Sheets tables.');
-    } finally {
-      setSeedLoading(false);
     }
   };
 
@@ -61,28 +73,61 @@ export default function AdminSettings() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 960 }}>
       <div>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--gray-900)' }}>
-          System Settings & Google Sheets Database Architecture
+          System Settings & Google Sheets Architecture
         </h2>
         <p style={{ color: 'var(--gray-600)', fontSize: '0.9rem' }}>
-          Configure business rules, schema initializations, security thresholds and Apps Script endpoints.
+          Non-destructive schema migrations, academy business thresholds, and security controls.
         </p>
       </div>
 
-      {/* Database Initialization Card */}
-      <div className="card" style={{ borderLeft: '4px solid var(--primary-600)' }}>
+      {/* Database Schema & Migration Card */}
+      <div className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <Database size={22} color="var(--primary-600)" />
+          <Database size={22} color="var(--primary)" />
           <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--gray-900)' }}>
-            Google Sheets Database Provisioning
+            Google Sheets Schema & Safe Migrations
           </h3>
         </div>
 
         <p style={{ fontSize: '0.9rem', color: 'var(--gray-600)', lineHeight: 1.5, marginBottom: 16 }}>
-          Automatically generates all 34 required sheets with uppercase primary headers (USERS, STUDENTS, COURSES, BATCHES, LESSONS, CLASS_ATTENDANCE, FEES, CHAT_MESSAGES, PLACEMENT_PROFILES, AUDIT_LOG, SETTINGS).
+          Run <code>upgradeDatabase()</code> to add new schema columns (e.g. DEFAULT_FEE, ALLOW_MOCK_INTERVIEW, CATEGORY, FEE_CHANGE_HISTORY, INTERVIEWS, PLACEMENT_STATUS_HISTORY) <strong>without altering or deleting any existing records</strong>.
         </p>
 
+        {upgradeStatus && (
+          <div
+            style={{
+              padding: '12px 16px',
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: 'var(--radius-md)',
+              color: '#15803d',
+              fontSize: '0.85rem',
+              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}
+          >
+            <CheckCircle2 size={16} />
+            <span>{upgradeStatus}</span>
+          </div>
+        )}
+
         {initStatus && (
-          <div style={{ padding: '12px 16px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 'var(--radius-md)', color: '#1d4ed8', fontSize: '0.85rem', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              padding: '12px 16px',
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              borderRadius: 'var(--radius-md)',
+              color: '#1d4ed8',
+              fontSize: '0.85rem',
+              marginBottom: 16,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8
+            }}
+          >
             <CheckCircle2 size={16} />
             <span>{initStatus}</span>
           </div>
@@ -90,40 +135,34 @@ export default function AdminSettings() {
 
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <button
-            onClick={handleInitializeDatabase}
-            disabled={initLoading}
+            onClick={handleUpgradeDatabase}
+            disabled={upgradeLoading}
             className="btn btn-primary"
             style={{ display: 'flex', alignItems: 'center', gap: 8 }}
           >
-            <RefreshCw size={16} className={initLoading ? 'animate-spin' : ''} />
-            <span>{initLoading ? 'Initializing Schema...' : 'Run initializeDatabase()'}</span>
+            <Sparkles size={16} className={upgradeLoading ? 'animate-spin' : ''} />
+            <span>{upgradeLoading ? 'Upgrading Schema...' : 'Upgrade Database Schema (Safe)'}</span>
           </button>
 
           <button
-            onClick={handleSeedDemoData}
-            disabled={seedLoading}
+            onClick={handleInitializeDatabase}
+            disabled={initLoading}
             className="btn btn-secondary"
             style={{ display: 'flex', alignItems: 'center', gap: 8 }}
           >
-            <Database size={16} />
-            <span>{seedLoading ? 'Seeding Records...' : 'Run seedDemoData()'}</span>
+            <RefreshCw size={16} className={initLoading ? 'animate-spin' : ''} />
+            <span>{initLoading ? 'Checking Tables...' : 'Check All Tables (initializeDatabase)'}</span>
           </button>
         </div>
-
-        {seedStatus && (
-          <div style={{ marginTop: 12, padding: '10px 14px', background: '#dcfce7', borderRadius: 'var(--radius-md)', color: '#166534', fontSize: '0.85rem' }}>
-            {seedStatus}
-          </div>
-        )}
       </div>
 
       {/* Academy Business Rules Configuration */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <SettingsIcon size={20} color="var(--primary-600)" />
+            <SettingsIcon size={20} color="var(--primary)" />
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--gray-900)' }}>
-              Configurable Business Rules (SETTINGS Sheet)
+              Academy Business Rules (SETTINGS Sheet)
             </h3>
           </div>
           {settingsSaved && (
@@ -135,6 +174,23 @@ export default function AdminSettings() {
 
         <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+            {/* Near Completion Threshold */}
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label" style={{ fontWeight: 700 }}>
+                Near Completion Progress Threshold (%)
+              </label>
+              <input
+                type="number"
+                className="form-input"
+                value={nearCompletionPercent}
+                onChange={(e) => setNearCompletionPercent(e.target.value)}
+                required
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>
+                Students reaching this progress percentage appear in the Placement Candidates engine.
+              </span>
+            </div>
+
             <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label">
                 Minimum Attendance for Placement (%)
@@ -198,17 +254,17 @@ export default function AdminSettings() {
                 Files stored securely in Google Drive.
               </span>
             </div>
-          </div>
 
-          <div className="form-group" style={{ margin: 0 }}>
-            <label className="form-label">Allowed File Extensions</label>
-            <input
-              type="text"
-              className="form-input"
-              value={allowedFiles}
-              onChange={(e) => setAllowedFiles(e.target.value)}
-              required
-            />
+            <div className="form-group" style={{ margin: 0 }}>
+              <label className="form-label">Allowed File Extensions</label>
+              <input
+                type="text"
+                className="form-input"
+                value={allowedFiles}
+                onChange={(e) => setAllowedFiles(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
@@ -247,10 +303,10 @@ export default function AdminSettings() {
 
           <div style={{ padding: 14, background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
             <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--gray-900)' }}>
-              PBKDF2 Password Salts
+              Strict Fee Separation
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--gray-600)', marginTop: 4 }}>
-              Passwords are never saved in plain text. A 32-character cryptographically random salt is generated per user and hashed with 10,000 SHA-256 iterations.
+              Course default fee changes never modify existing students' assigned fees. All changes are logged to FEE_CHANGE_HISTORY.
             </p>
           </div>
         </div>

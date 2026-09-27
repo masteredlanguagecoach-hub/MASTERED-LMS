@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../hooks/useApi';
 import { studentApi } from '../../api/client';
 import { DashboardData } from '../../types';
 import ProgressRing from '../../components/ui/ProgressRing';
 import ProgressBar from '../../components/ui/ProgressBar';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { DashboardSkeleton } from '../../components/ui/LoadingSkeleton';
 import {
   BookOpen,
@@ -25,107 +27,42 @@ import {
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data, loading, error, refetch } = useApi<DashboardData>(() =>
     studentApi.getDashboard()
   );
 
-  // Fallback demo data matching the database structure if backend URL is not yet connected
-  const fallbackData: DashboardData = {
-    student: {
-      studentId: 'STD000001',
-      fullName: 'Priya Sharma',
-      admissionNumber: 'STD000001',
-      email: 'student@masteredskill.academy'
-    },
-    course: {
-      courseId: 'CRS000001',
-      title: 'Full Stack Web Development'
-    },
-    batch: {
-      batchId: 'BAT000001',
-      batchName: 'FSWD - Batch 2026 A',
-      timing: '10:00 AM - 1:00 PM'
-    },
-    progress: {
-      courseProgress: 45,
-      modulesCompleted: 2,
-      totalModules: 4,
-      lessonsCompleted: 9,
-      totalLessons: 20,
-      currentModule: {
-        moduleId: 'MOD000003',
-        title: 'React Frontend Development'
-      }
-    },
-    attendance: {
-      percent: 88,
-      total: 25,
-      present: 22
-    },
-    classes: {
-      today: [
-        {
-          classId: 'CLS000012',
-          batchId: 'BAT000001',
-          classDate: new Date().toISOString(),
-          startTime: '10:00 AM',
-          endTime: '1:00 PM',
-          title: 'React Hooks & State Architecture',
-          meetingLink: 'https://meet.google.com/abc-defg-hij',
-          status: 'SCHEDULED'
-        }
-      ],
-      upcoming: [
-        {
-          classId: 'CLS000013',
-          batchId: 'BAT000001',
-          classDate: new Date(Date.now() + 86400000 * 2).toISOString(),
-          startTime: '10:00 AM',
-          endTime: '1:00 PM',
-          title: 'Context API & Redux Toolkit',
-          status: 'SCHEDULED'
-        }
-      ]
-    },
-    pendingAssignments: 2,
-    pendingAssessments: 1,
-    fee: {
-      totalAmount: 45000,
-      paidAmount: 15000,
-      pendingAmount: 30000,
-      status: 'PARTIAL'
-    },
-    placement: {
-      eligible: false,
-      readinessPercent: 68
-    },
-    notifications: [
-      {
-        notificationId: 'NTF001',
-        userId: 'USR000003',
-        title: 'New Assignment: React Portfolio Project',
-        body: 'Submit your deployed portfolio link before Sunday 11:59 PM.',
-        type: 'ASSIGNMENT',
-        isRead: 'false',
-        createdAt: new Date().toISOString()
-      },
-      {
-        notificationId: 'NTF002',
-        userId: 'USR000003',
-        title: 'Assessment 2 Scheduled',
-        body: 'JavaScript Essentials MCQ test opens tomorrow at 10 AM.',
-        type: 'ASSESSMENT',
-        isRead: 'false',
-        createdAt: new Date(Date.now() - 3600000 * 4).toISOString()
-      }
-    ]
-  };
-
-  const d = data || fallbackData;
-
   if (loading && !data) {
     return <DashboardSkeleton />;
   }
+
+  if (!data) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div
+          className="card"
+          style={{
+            background: 'linear-gradient(135deg, var(--primary-900) 0%, var(--primary-700) 100%)',
+            color: 'var(--white)',
+            padding: '28px 32px'
+          }}
+        >
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: 8 }}>
+            Welcome back, {user?.fullName || 'Student'}! 👋
+          </h2>
+          <p style={{ opacity: 0.85, fontSize: '0.95rem' }}>
+            Admission No: <strong>{user?.admissionNumber}</strong>
+          </p>
+        </div>
+        <EmptyState
+          title="No enrollment data found"
+          description="Your course and batch information is not yet assigned. Please contact academy administration."
+        />
+      </div>
+    );
+  }
+
+  const d = data;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>

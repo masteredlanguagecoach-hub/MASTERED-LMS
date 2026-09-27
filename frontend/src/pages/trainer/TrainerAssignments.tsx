@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { trainerApi } from '../../api/client';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { FileText, CheckCircle2, XCircle, ExternalLink, MessageSquare, X } from 'lucide-react';
 
 interface SubmissionReviewItem {
@@ -25,30 +26,7 @@ export default function TrainerAssignments() {
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const fallbackSubmissions: SubmissionReviewItem[] = [
-    {
-      submissionId: 'SUB002',
-      assignmentId: 'ASG000002',
-      assignmentTitle: 'React Custom Hooks & Google Apps Script API Client',
-      studentId: 'STD000001',
-      studentName: 'Priya Sharma',
-      submissionText: 'GitHub: https://github.com/priya/react-gas-client\nTested login, dashboard and progress APIs.',
-      submittedAt: '2026-03-25T16:00:00Z',
-      status: 'SUBMITTED'
-    },
-    {
-      submissionId: 'SUB003',
-      assignmentId: 'ASG000002',
-      assignmentTitle: 'React Custom Hooks & Google Apps Script API Client',
-      studentId: 'STD000002',
-      studentName: 'Aman Verma',
-      submissionText: 'https://github.com/aman/react-hooks-project',
-      submittedAt: '2026-03-24T18:30:00Z',
-      status: 'SUBMITTED'
-    }
-  ];
-
-  const submissions = fallbackSubmissions;
+  const submissions: SubmissionReviewItem[] = [];
 
   const handleOpenReview = (sub: SubmissionReviewItem) => {
     setSelectedSub(sub);
@@ -87,48 +65,58 @@ export default function TrainerAssignments() {
       </div>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Assignment</th>
-                <th>Submitted Link</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {submissions.map((sub) => (
-                <tr key={sub.submissionId}>
-                  <td>
-                    <div style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{sub.studentName}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>{sub.studentId}</div>
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: 600 }}>{sub.assignmentTitle}</span>
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--primary-600)' }}>
-                      {sub.submissionText.substring(0, 45)}...
-                    </span>
-                  </td>
-                  <td>{new Date(sub.submittedAt).toLocaleDateString()}</td>
-                  <td><StatusBadge status={sub.status} /></td>
-                  <td>
-                    <button
-                      onClick={() => handleOpenReview(sub)}
-                      className="btn btn-primary btn-sm"
-                    >
-                      Review & Grade
-                    </button>
-                  </td>
+        {submissions.length === 0 ? (
+          <div style={{ padding: 32 }}>
+            <EmptyState
+              icon={<FileText size={48} color="var(--gray-400)" />}
+              title="No submissions to review"
+              description="Student assignment submissions for your assigned batches will appear here."
+            />
+          </div>
+        ) : (
+          <div className="table-wrap" style={{ border: 'none', borderRadius: 0 }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Assignment</th>
+                  <th>Submitted Link</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {submissions.map((sub) => (
+                  <tr key={sub.submissionId}>
+                    <td>
+                      <div style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{sub.studentName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>{sub.studentId}</div>
+                    </td>
+                    <td>
+                      <span style={{ fontWeight: 600 }}>{sub.assignmentTitle}</span>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--primary)' }}>
+                        {sub.submissionText.substring(0, 45)}...
+                      </span>
+                    </td>
+                    <td>{new Date(sub.submittedAt).toLocaleDateString()}</td>
+                    <td><StatusBadge status={sub.status} /></td>
+                    <td>
+                      <button
+                        onClick={() => handleOpenReview(sub)}
+                        className="btn btn-primary btn-sm"
+                      >
+                        Review & Grade
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Review Modal */}

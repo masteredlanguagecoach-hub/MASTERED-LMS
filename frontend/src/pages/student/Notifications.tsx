@@ -16,48 +16,7 @@ export default function Notifications() {
     notificationsApi.getNotifications()
   );
 
-  const fallbackNotifications: Notification[] = [
-    {
-      notificationId: 'NTF0001',
-      userId: 'USR000003',
-      title: 'Assessment 2 Scheduled: JavaScript Essentials',
-      body: 'Your module test is scheduled for tomorrow at 10:00 AM. Ensure good internet connectivity.',
-      type: 'ASSESSMENT',
-      isRead: 'false',
-      createdAt: new Date().toISOString()
-    },
-    {
-      notificationId: 'NTF0002',
-      userId: 'USR000003',
-      title: 'Assignment Evaluation: Responsive Dashboard',
-      body: 'Trainer Rajesh Kumar reviewed your project submission: "Excellent component breakdown!" Awarded 95/100.',
-      type: 'ASSIGNMENT',
-      isRead: 'false',
-      createdAt: new Date(Date.now() - 3600000 * 5).toISOString()
-    },
-    {
-      notificationId: 'NTF0003',
-      userId: 'USR000003',
-      title: 'New Campus Placement Drive Announced',
-      body: 'Innovatech Digital Solutions is hiring Junior React Frontend Developers. Check the Jobs tab to apply.',
-      type: 'PLACEMENT',
-      isRead: 'true',
-      createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
-    },
-    {
-      notificationId: 'NTF0004',
-      userId: 'USR000003',
-      title: 'Fee Payment Receipt Generated',
-      body: 'Your payment of ₹15,000 for Installment 1 has been verified. Receipt MSA-RCP-2026-0042 is available.',
-      type: 'FEE',
-      isRead: 'true',
-      createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
-    }
-  ];
-
-  const notifications = data?.notifications && data.notifications.length > 0
-    ? data.notifications
-    : fallbackNotifications;
+  const notifications = data?.notifications || [];
 
   const handleMarkAllRead = async () => {
     try {
@@ -90,17 +49,26 @@ export default function Notifications() {
           </p>
         </div>
 
-        <button
-          onClick={handleMarkAllRead}
-          className="btn btn-secondary btn-sm"
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-        >
-          <CheckCheck size={16} />
-          <span>Mark All as Read</span>
-        </button>
+        {notifications.length > 0 && (
+          <button
+            onClick={handleMarkAllRead}
+            className="btn btn-secondary btn-sm"
+            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            <CheckCheck size={16} />
+            <span>Mark All as Read</span>
+          </button>
+        )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {notifications.length === 0 ? (
+        <EmptyState
+          icon={Bell}
+          title="No Notifications"
+          message="You are all caught up! Academic alerts and announcements will appear here."
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {notifications.map((notif) => {
           const isUnread = notif.isRead !== 'true';
 
@@ -158,6 +126,7 @@ export default function Notifications() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }

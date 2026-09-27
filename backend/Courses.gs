@@ -24,12 +24,45 @@ function handleCreateCourse(params) {
       SHORT_CODE: clean(params.shortCode || ''), DESCRIPTION: clean(params.description),
       DURATION_WEEKS: params.durationWeeks || '', DURATION_HOURS: params.durationHours || '',
       LEVEL: params.level || 'Beginner', THUMBNAIL_URL: params.thumbnailUrl || '',
+      DEFAULT_FEE: params.defaultFee || '',
       STATUS: 'ACTIVE', CREATED_BY: user.USER_ID, CREATED_AT: now(), UPDATED_AT: now()
     });
     auditLog(user.USER_ID, user.ROLE, 'CREATE_COURSE', 'COURSE', courseId, '', params.title, 'SUCCESS');
     return successResponse({ courseId }, 'Course created');
   } catch (e) {
     return errorResponse(e.message, 'CREATE_COURSE_ERROR');
+  }
+}
+
+/**
+ * Update course details, including course default fee.
+ * CRITICAL: Updating the course default fee here modifies ONLY the COURSES sheet.
+ * It NEVER modifies existing students' assigned fees in the FEES sheet.
+ */
+function handleUpdateCourse(params) {
+  try {
+    const { user } = requireAuth(params, [CONFIG.ROLES.ADMIN]);
+    validateRequired(params, ['courseId']);
+
+    const course = findByField(CONFIG.SHEETS.COURSES, 'COURSE_ID', params.courseId);
+    if (!course) return errorResponse('Course not found', 'NOT_FOUND');
+
+    const updates = { UPDATED_AT: now() };
+    if (params.title) updates.TITLE = clean(params.title);
+    if (params.shortCode) updates.SHORT_CODE = clean(params.shortCode);
+    if (params.description) updates.DESCRIPTION = clean(params.description);
+    if (params.durationWeeks) updates.DURATION_WEEKS = params.durationWeeks;
+    if (params.durationHours) updates.DURATION_HOURS = params.durationHours;
+    if (params.level) updates.LEVEL = params.level;
+    if (params.defaultFee !== undefined) updates.DEFAULT_FEE = String(params.defaultFee);
+    if (params.status) updates.STATUS = params.status;
+
+    updateRow(CONFIG.SHEETS.COURSES, 'COURSE_ID', params.courseId, updates);
+    auditLog(user.USER_ID, user.ROLE, 'UPDATE_COURSE', 'COURSE', params.courseId, course, updates, 'SUCCESS');
+
+    return successResponse(null, 'Course updated successfully without altering existing student fees');
+  } catch (e) {
+    return errorResponse(e.message, 'UPDATE_COURSE_ERROR');
   }
 }
 

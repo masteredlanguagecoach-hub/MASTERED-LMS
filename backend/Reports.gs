@@ -121,16 +121,26 @@ function getAttendanceReport(params) {
 function getFeeReport(params) {
   const fees = getAllFromSheet(CONFIG.SHEETS.FEES);
   const students = getAllFromSheet(CONFIG.SHEETS.STUDENTS);
+  const courses = getAllFromSheet(CONFIG.SHEETS.COURSES);
 
   const report = fees.map(f => {
     const student = students.find(s => s.STUDENT_ID === f.STUDENT_ID);
+    const course = courses.find(c => c.COURSE_ID === f.COURSE_ID);
     return {
       ...f,
       studentName: student ? student.FULL_NAME : 'Unknown',
       admissionNumber: student ? student.ADMISSION_NUMBER : '',
+      courseTitle: course ? course.TITLE : '',
+      courseShortCode: course ? course.SHORT_CODE : '',
+      courseDefaultFee: course && course.DEFAULT_FEE ? parseFloat(course.DEFAULT_FEE) : 0,
       totalAmount: parseFloat(f.TOTAL_AMOUNT) || 0,
       paidAmount: parseFloat(f.PAID_AMOUNT) || 0,
-      pendingAmount: parseFloat(f.PENDING_AMOUNT) || 0
+      pendingAmount: parseFloat(f.PENDING_AMOUNT) || 0,
+      registrationFee: parseFloat(f.REGISTRATION_FEE) || 0,
+      tuitionFee: parseFloat(f.TUITION_FEE) || 0,
+      discountAmount: parseFloat(f.DISCOUNT_AMOUNT) || 0,
+      otherCharges: parseFloat(f.OTHER_CHARGES) || 0,
+      notes: f.NOTES || ''
     };
   });
   return successResponse(report);

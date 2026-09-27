@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { trainerApi } from '../../api/client';
 import { Batch, Student } from '../../types';
 import StatusBadge from '../../components/ui/StatusBadge';
+import EmptyState from '../../components/ui/EmptyState';
 import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
 import { Users, Calendar, Clock, MapPin, Search, ChevronRight, X } from 'lucide-react';
 
@@ -19,78 +20,8 @@ export default function TrainerBatches() {
     [selectedBatch]
   );
 
-  const fallbackBatches: Batch[] = [
-    {
-      batchId: 'BAT000001',
-      batchName: 'FSWD - Batch 2026 A',
-      courseId: 'CRS000001',
-      trainerId: 'TRN000001',
-      startDate: '2026-01-06',
-      endDate: '2026-06-30',
-      schedule: 'Monday, Wednesday, Friday',
-      timing: '10:00 AM - 1:00 PM',
-      venue: 'Online',
-      mode: 'Online',
-      maxStudents: '30',
-      status: 'ACTIVE'
-    },
-    {
-      batchId: 'BAT000002',
-      batchName: 'FSWD - Batch 2026 B',
-      courseId: 'CRS000001',
-      trainerId: 'TRN000001',
-      startDate: '2026-02-01',
-      endDate: '2026-07-31',
-      schedule: 'Tuesday, Thursday, Saturday',
-      timing: '2:00 PM - 5:00 PM',
-      venue: 'Online',
-      mode: 'Online',
-      maxStudents: '25',
-      status: 'ACTIVE'
-    }
-  ];
-
-  const fallbackStudents: Student[] = [
-    {
-      studentId: 'STD000001',
-      userId: 'USR000003',
-      admissionNumber: 'STD000001',
-      fullName: 'Priya Sharma',
-      email: 'student@masteredskill.academy',
-      mobile: '9000000003',
-      courseId: 'CRS000001',
-      batchId: 'BAT000001',
-      enrollmentDate: '2026-01-01',
-      status: 'ACTIVE'
-    },
-    {
-      studentId: 'STD000002',
-      userId: 'USR000004',
-      admissionNumber: 'STD000002',
-      fullName: 'Aman Verma',
-      email: 'aman.verma@example.com',
-      mobile: '9000000004',
-      courseId: 'CRS000001',
-      batchId: 'BAT000001',
-      enrollmentDate: '2026-01-02',
-      status: 'ACTIVE'
-    },
-    {
-      studentId: 'STD000003',
-      userId: 'USR000005',
-      admissionNumber: 'STD000003',
-      fullName: 'Sneha Patel',
-      email: 'sneha.patel@example.com',
-      mobile: '9000000005',
-      courseId: 'CRS000001',
-      batchId: 'BAT000001',
-      enrollmentDate: '2026-01-03',
-      status: 'ACTIVE'
-    }
-  ];
-
-  const batches = batchesData && batchesData.length > 0 ? batchesData : fallbackBatches;
-  const students = studentsData && studentsData.length > 0 ? studentsData : fallbackStudents;
+  const batches = batchesData || [];
+  const students = studentsData || [];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -103,9 +34,18 @@ export default function TrainerBatches() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
-        {batches.map((batch) => (
-          <div key={batch.batchId} className="card card-hover">
+      {batches.length === 0 ? (
+        <div className="card" style={{ padding: 32 }}>
+          <EmptyState
+            icon={<Users size={48} color="var(--gray-400)" />}
+            title="No batches assigned"
+            description="You currently have no active batches assigned by the administrator."
+          />
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+          {batches.map((batch) => (
+            <div key={batch.batchId} className="card card-hover">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <span className="badge badge-primary">{batch.batchId}</span>
               <StatusBadge status={batch.status} />
@@ -144,6 +84,7 @@ export default function TrainerBatches() {
           </div>
         ))}
       </div>
+      )}
 
       {/* Student Roster Modal */}
       {studentModalOpen && (
@@ -167,17 +108,25 @@ export default function TrainerBatches() {
                   </tr>
                 </thead>
                 <tbody>
-                  {students.map((std) => (
-                    <tr key={std.studentId}>
-                      <td style={{ fontWeight: 600 }}>{std.admissionNumber}</td>
-                      <td>
-                        <div style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{std.fullName}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>{std.email}</div>
+                  {students.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} style={{ textAlign: 'center', padding: '24px', color: 'var(--gray-500)' }}>
+                        No students enrolled in this batch yet.
                       </td>
-                      <td style={{ fontSize: '0.85rem' }}>{std.mobile}</td>
-                      <td><StatusBadge status={std.status} /></td>
                     </tr>
-                  ))}
+                  ) : (
+                    students.map((std) => (
+                      <tr key={std.studentId}>
+                        <td style={{ fontWeight: 600 }}>{std.admissionNumber}</td>
+                        <td>
+                          <div style={{ fontWeight: 600, color: 'var(--gray-900)' }}>{std.fullName}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>{std.email}</div>
+                        </td>
+                        <td style={{ fontSize: '0.85rem' }}>{std.mobile}</td>
+                        <td><StatusBadge status={std.status} /></td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

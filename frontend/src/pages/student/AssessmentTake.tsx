@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { assessmentsApi } from '../../api/client';
 import { Assessment, Question } from '../../types';
-import { ArrowLeft, Clock, CheckCircle2, AlertCircle, Send } from 'lucide-react';
+import EmptyState from '../../components/ui/EmptyState';
+import { CardSkeleton } from '../../components/ui/LoadingSkeleton';
+import { ArrowLeft, Clock, CheckCircle2, AlertCircle, Send, HelpCircle } from 'lucide-react';
 
 interface AssessmentDetailsData {
   assessment: Assessment;
@@ -29,39 +31,9 @@ export default function AssessmentTake() {
     [assessmentId]
   );
 
-  // Fallback demo questions
-  const fallbackQuestions = [
-    {
-      questionId: 'QST001',
-      questionText: 'What does JSX stand for in React?',
-      type: 'MCQ',
-      options: 'JavaScript XML,Java Syntax Extension,JSON X-path,JavaScript Extension',
-      marks: '5'
-    },
-    {
-      questionId: 'QST002',
-      questionText: 'Which React hook should be used to perform side effects like data fetching or timers?',
-      type: 'MCQ',
-      options: 'useState,useEffect,useMemo,useContext',
-      marks: '5'
-    },
-    {
-      questionId: 'QST003',
-      questionText: 'In React, components re-render whenever there is a change in which of the following?',
-      type: 'MCQ',
-      options: 'Props or State,CSS files only,HTML elements,Browser window size only',
-      marks: '5'
-    },
-    {
-      questionId: 'QST004',
-      questionText: 'What is the primary role of Google Apps Script in this LMS architecture?',
-      type: 'MCQ',
-      options: 'Acts as serverless API abstraction connecting frontend to Google Sheets,Renders the frontend HTML directly,Replaces Google Drive,Runs client-side in the browser',
-      marks: '5'
-    }
-  ];
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const questions = data?.questions && data.questions.length > 0 ? data.questions : fallbackQuestions;
+  const questions = data?.questions || [];
   const assessmentTitle = data?.assessment?.title || 'Interactive Assessment';
 
   const handleSelectOption = (questionId: string, option: string) => {
@@ -71,9 +43,10 @@ export default function AssessmentTake() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setSubmitError(null);
     try {
       const res = await assessmentsApi.submitAssessment(
-        assessmentId || 'ASM000001',
+        assessmentId || '',
         answers,
         new Date().toISOString()
       );
@@ -81,23 +54,33 @@ export default function AssessmentTake() {
       if (res.success && res.data) {
         setResult(res.data as any);
       } else {
-        // Fallback calculation demo
-        const answeredCount = Object.keys(answers).length;
-        const score = Math.min(20, answeredCount * 5);
-        setResult({
-          score,
-          totalMarks: 20,
-          percentage: (score / 20) * 100,
-          status: score >= 12 ? 'PASSED' : 'FAILED',
-          passed: score >= 12
-        });
+        setSubmitError(res.error || 'Failed to submit assessment. Please try again.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setSubmitError(err.message || 'Server error occurred during submission.');
     } finally {
       setSubmitting(false);
     }
   };
+
+  if (loading && !data) {
+    return <CardSkeleton count={3} />;
+  }
+
+  if (!loading && questions.length === 0) {
+    return (
+      <div style={{ maxWidth: 640, margin: '40px auto' }}>
+        <EmptyState
+          icon={HelpCircle}
+          title="No Assessment Questions Found"
+          message="This assessment does not currently have any active questions configured in the database."
+          actionLabel="Back to Assessments"
+          onAction={() => navigate('/assessments')}
+        />
+      </div>
+    );
+  }
 
   if (result) {
     return (
@@ -191,6 +174,13 @@ export default function AssessmentTake() {
           Please select one answer for each multiple-choice question before submitting.
         </p>
       </div>
+
+      {submitError && (
+        <div style={{ padding: '12px 16px', background: '#fee2e2', color: '#991b1b', borderRadius: 'var(--radius-md)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <AlertCircle size={18} />
+          <span>{submitError}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {questions.map((q, idx) => {

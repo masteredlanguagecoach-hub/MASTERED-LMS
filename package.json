@@ -1,0 +1,11 @@
+{
+  "name": "mastered-skill-academy-lms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mastered Skill Academy — LMS Web Application",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview"
+  }
+}
